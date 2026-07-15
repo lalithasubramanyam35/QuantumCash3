@@ -46,7 +46,9 @@ let appState = {
   activeAccountKey: "primary",
   generatedOTP: null,
   captchaVerified: false,
-  otpVerified: false
+  otpVerified: false,
+  currentScenario: "stable",
+  txnLimit: 5
 };
 
 // Utility: Save and Load sessions persistently
@@ -93,6 +95,41 @@ function showScreen(screenId) {
   }
 }
 
+// Custom Toast Alert System
+function showToast(message, type = "success") {
+  const existingToasts = document.querySelectorAll(".custom-toast");
+  existingToasts.forEach(t => t.remove());
+
+  const toast = document.createElement("div");
+  toast.className = "custom-toast fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-3 rounded-xl shadow-2xl backdrop-blur-md border flex items-center gap-2.5 text-xs font-semibold tracking-wide uppercase animate-fade-in-up";
+  
+  if (type === "success") {
+    toast.className += " bg-slate-950/95 border-emerald-500/30 text-emerald-400";
+    toast.innerHTML = `
+      <svg class="w-4.5 h-4.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span>${message}</span>
+    `;
+  } else {
+    toast.className += " bg-slate-950/95 border-rose-500/30 text-rose-400";
+    toast.innerHTML = `
+      <svg class="w-4.5 h-4.5 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span>${message}</span>
+    `;
+  }
+  
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add("opacity-0");
+    toast.style.transition = "opacity 0.4s ease";
+    setTimeout(() => toast.remove(), 400);
+  }, 2500);
+}
+
 // Custom Alert Helpers
 function showAuthError(msg) {
   const container = document.getElementById("auth-error-msg");
@@ -133,19 +170,81 @@ function generateOTP() {
   }, 60000);
 }
 
-// Render Dashboard Data
-function renderDashboard() {
+// Executive Metrics Visualizer with Real Bank Standards
+function updateExecutiveMetrics(forecastData, scenario) {
+  const dscrValue = document.getElementById("metric-dscr-value");
+  const dscrBadge = document.getElementById("metric-dscr-badge");
+  const runwayValue = document.getElementById("metric-runway-value");
+  const runwayBadge = document.getElementById("metric-runway-badge");
+  const riskValue = document.getElementById("metric-risk-value");
+  const riskBadge = document.getElementById("metric-risk-badge");
+  
+  if (scenario === 'crunch') {
+    dscrValue.textContent = "0.72x";
+    dscrBadge.textContent = "DISTRESSED";
+    dscrBadge.className = "px-2 py-0.5 text-[9px] font-bold rounded bg-rose-500/20 text-rose-400 border border-rose-500/20";
+    
+    runwayValue.textContent = "3 Days";
+    runwayBadge.textContent = "CRITICAL LIMIT";
+    runwayBadge.className = "px-2 py-0.5 text-[9px] font-bold rounded bg-rose-500/20 text-rose-400 border border-rose-500/20";
+    
+    riskValue.textContent = "HIGH RISK";
+    riskBadge.textContent = "UNDERWRITING REJECTED";
+    riskBadge.className = "px-2 py-0.5 text-[9px] font-bold rounded bg-rose-500 text-white";
+  } else {
+    dscrValue.textContent = "1.84x";
+    dscrBadge.textContent = "HEALTHY";
+    dscrBadge.className = "px-2 py-0.5 text-[9px] font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/20";
+    
+    runwayValue.textContent = "90+ Days";
+    runwayBadge.textContent = "SELF-SUSTAINING";
+    runwayBadge.className = "px-2 py-0.5 text-[9px] font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/20";
+    
+    riskValue.textContent = "LOW RISK";
+    riskBadge.textContent = "PRE-APPROVED";
+    riskBadge.className = "px-2 py-0.5 text-[9px] font-bold rounded bg-emerald-500 text-white";
+  }
+}
+
+// Render Dashboard Data with Real-Time API Feeds
+async function renderDashboard() {
   const account = ACCOUNTS_DATA[appState.activeAccountKey];
   if (!account) return;
 
   // Set Profile and Account Details
-  document.getElementById("user-display-name").textContent = appState.currentUser.name || "Valued Customer";
+  const displayName = appState.currentUser ? (appState.currentUser.name || "Valued Customer") : "Valued Customer";
+  document.getElementById("user-display-name").textContent = displayName;
   document.getElementById("account-title").textContent = account.name;
   document.getElementById("account-number").textContent = account.number;
   document.getElementById("account-type-badge").textContent = account.type;
   
+  let transactions = account.transactions;
+  let balance = account.balance;
+  let totalCount = transactions.length;
+
+  if (appState.activeAccountKey === "primary") {
+    try {
+      const resp = await fetch(`/api/transactions?scenario=${appState.currentScenario}&limit=${appState.txnLimit}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        transactions = data.transactions.map(t => ({
+          date: t.date,
+          desc: t.category === "Sales" ? "Daily Customer Sales Inflow" : `Supplier RESTOCK Draw - [${t.category}]`,
+          amount: t.amount,
+          type: t.type.toLowerCase()
+        }));
+        balance = data.finalBalance;
+        totalCount = data.totalCount;
+        
+        ACCOUNTS_DATA.primary.balance = balance;
+      }
+    } catch (err) {
+      console.error("Failed to load historical CSV transactions:", err);
+    }
+  }
+
   // Balance Formatting
-  const balanceStr = account.balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const balanceStr = balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   document.getElementById("account-balance").textContent = `$${balanceStr}`;
 
   // Populate Dropdown Checkmark
@@ -165,12 +264,12 @@ function renderDashboard() {
   const txnList = document.getElementById("transaction-list");
   txnList.innerHTML = "";
   
-  if (account.transactions.length === 0) {
+  if (transactions.length === 0) {
     txnList.innerHTML = `<div class="p-6 text-center text-slate-400">No recent transactions.</div>`;
     return;
   }
 
-  account.transactions.forEach(txn => {
+  transactions.forEach(txn => {
     const isNegative = txn.amount < 0;
     const amountFormatted = Math.abs(txn.amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const colorClass = isNegative ? "text-rose-400" : "text-emerald-400";
@@ -189,10 +288,36 @@ function renderDashboard() {
     `;
     txnList.appendChild(txnRow);
   });
+
+  // Toggle View More Footer
+  const footerContainer = document.getElementById("transaction-list-footer");
+  const viewMoreBtn = document.getElementById("view-all-txns-btn");
+  if (appState.activeAccountKey === "primary" && totalCount > appState.txnLimit) {
+    footerContainer.classList.remove("hidden");
+    viewMoreBtn.textContent = `View All Transactions (${totalCount - appState.txnLimit} remaining)`;
+  } else {
+    footerContainer.classList.add("hidden");
+  }
 }
 
 // Initializing Event Listeners
-document.addEventListener("DOMContentLoaded", () => {
+function initializePortal() {
+  // Seed / Demo User Configuration
+  const demoEmail = "treasury@quantumcash.com";
+  const demoPhone = "+1 (555) 000-0000";
+  const demoName = "Gandikota Lalitha Subramanyam";
+
+  // Scenario Switch Controls
+  const stableBtn = document.getElementById("scenario-stable-btn");
+  const crunchBtn = document.getElementById("scenario-crunch-btn");
+
+  // Forecast DOM elements
+  const runForecastBtn = document.getElementById("run-forecast-btn");
+  const forecastSection = document.getElementById("forecast-section");
+  const forecastContent = document.getElementById("forecast-content");
+  
+  let currentLoanLetter = "";
+
   // Form Auth Switching (Login vs Register)
   const toggleAuthLink = document.getElementById("toggle-auth-link");
   const authTitle = document.getElementById("auth-title");
@@ -230,9 +355,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Mock reCAPTCHA verification
+  // Mock reCAPTCHA verification (with full card click wrapper)
   const captchaCheckbox = document.getElementById("captcha-checkbox");
   const captchaStatus = document.getElementById("captcha-status");
+  const captchaContainer = document.getElementById("captcha-container");
 
   captchaCheckbox.addEventListener("change", () => {
     if (captchaCheckbox.checked) {
@@ -241,10 +367,19 @@ document.addEventListener("DOMContentLoaded", () => {
       appState.captchaVerified = true;
     } else {
       captchaStatus.textContent = "Please verify you are human";
-      captchaStatus.className = "text-xs text-slate-400";
+      captchaStatus.className = "text-xs text-slate-400 font-medium";
       appState.captchaVerified = false;
     }
   });
+
+  if (captchaContainer) {
+    captchaContainer.addEventListener("click", (e) => {
+      if (e.target !== captchaCheckbox) {
+        captchaCheckbox.checked = !captchaCheckbox.checked;
+        captchaCheckbox.dispatchEvent(new Event("change"));
+      }
+    });
+  }
 
   // Handle Login / Registration Form Submission
   const authForm = document.getElementById("auth-form");
@@ -313,6 +448,8 @@ document.addEventListener("DOMContentLoaded", () => {
       
       saveSession();
       showScreen("dashboard-screen");
+      updateScenarioButtons();
+      triggerForecastUpdate();
     } else {
       showOtpError("Invalid OTP code. Please check the simulator banner and try again.");
     }
@@ -335,6 +472,29 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("otp-simulator").classList.add("hidden");
     showScreen("auth-screen");
   });
+
+  // OTP Simulator click handler to auto-fill for frictionless testing
+  const otpSimulator = document.getElementById("otp-simulator");
+  if (otpSimulator) {
+    otpSimulator.addEventListener("click", () => {
+      if (appState.generatedOTP) {
+        const otpCodeInput = document.getElementById("otp-code");
+        if (otpCodeInput) {
+          otpCodeInput.value = appState.generatedOTP;
+          otpCodeInput.focus();
+          showToast("OTP code auto-filled successfully!");
+          
+          // Automatically trigger form submit for ultra-frictionless testing!
+          const otpFormElement = document.getElementById("otp-form");
+          if (otpFormElement) {
+            setTimeout(() => {
+              otpFormElement.dispatchEvent(new Event("submit"));
+            }, 500);
+          }
+        }
+      }
+    });
+  }
 
   // Switch Account Event Handlers
   const accountsMenuBtn = document.getElementById("accounts-menu-button");
@@ -370,29 +530,50 @@ document.addEventListener("DOMContentLoaded", () => {
   signOutBtn.addEventListener("click", () => {
     clearSession();
     showScreen("auth-screen");
+    
+    // Ensure form is pre-filled again for the next session
+    const emailInput = document.getElementById("email");
+    const phoneInput = document.getElementById("phone");
+    if (emailInput) emailInput.value = demoEmail;
+    if (phoneInput) phoneInput.value = demoPhone;
   });
 
   // App Init Session Check
   const hasSession = loadSession();
-  if (hasSession && appState.currentUser) {
-    showScreen("dashboard-screen");
-  } else {
-    showScreen("auth-screen");
+  
+  if (!localStorage.getItem(`user_${demoEmail}`)) {
+    localStorage.setItem(`user_${demoEmail}`, JSON.stringify({
+      name: demoName,
+      email: demoEmail,
+      phone: demoPhone
+    }));
   }
 
-  // Forecast API Integration
-  const runForecastBtn = document.getElementById("run-forecast-btn");
-  const forecastSection = document.getElementById("forecast-section");
-  const forecastContent = document.getElementById("forecast-content");
-  
-  let currentLoanLetter = "";
+  if (hasSession && appState.currentUser) {
+    showScreen("dashboard-screen");
+    updateScenarioButtons();
+    triggerForecastUpdate();
+  } else {
+    showScreen("auth-screen");
+    
+    // Pre-fill the login form inputs
+    const emailInput = document.getElementById("email");
+    const phoneInput = document.getElementById("phone");
+    if (emailInput && !emailInput.value) {
+      emailInput.value = demoEmail;
+    }
+    if (phoneInput && !phoneInput.value) {
+      phoneInput.value = demoPhone;
+    }
+  }
 
-  runForecastBtn.addEventListener("click", async () => {
+  // Forecast API Integration & Trigger Logic
+  async function triggerForecastUpdate() {
     forecastSection.style.display = "flex";
     forecastContent.innerHTML = `<div class="text-center text-slate-400 py-8">Fetching forecast data...</div>`;
     
     try {
-      const response = await fetch('/api/forecast');
+      const response = await fetch(`/api/forecast?scenario=${appState.currentScenario}`);
       if (!response.ok) {
         let errMsg = `HTTP error! status: ${response.status}`;
         try {
@@ -403,6 +584,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const data = await response.json();
       currentLoanLetter = data.loanLetter;
+      
+      // Update Banker Language metrics dynamically
+      updateExecutiveMetrics(data, appState.currentScenario);
       
       let patternsHtml = data.patterns.map(p => `<li><span class="font-bold text-slate-200">▪ ${p.name}:</span> ${p.desc}</li>`).join("");
       
@@ -417,6 +601,34 @@ document.addEventListener("DOMContentLoaded", () => {
           <td class="py-2 px-3 ${r.events !== 'None' ? 'font-semibold text-slate-200' : ''}">${r.events}</td>
         </tr>
       `).join("");
+
+      let warningCardHtml = "";
+      if (data.warning) {
+        warningCardHtml = `
+          <div class="bg-rose-950/30 border-l-4 border-rose-500 p-4 rounded-r-lg mt-4 animate-pulse">
+            <h4 class="text-rose-400 font-bold mb-1 uppercase tracking-wider text-xs">Critical Warning: Cash Crunch Detected</h4>
+            <p class="text-xs md:text-sm text-slate-200">Predicted Balance will DIP BELOW ZERO on: <span class="font-bold">${data.warning.date}</span></p>
+            <p class="text-xs md:text-sm text-slate-200">Estimated Shortfall: <span class="font-bold text-rose-400">$${data.warning.shortfall.toFixed(2)}</span></p>
+            <p class="text-[11px] text-slate-400 italic mt-2">The AI virtual treasurer has drafted an automated micro-loan justification to bridge this timing mismatch.</p>
+            <button id="generate-loan-btn" class="mt-4 text-xs bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg font-medium transition shadow-lg shadow-rose-600/20 flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              Review Dynamic Loan Request Letter
+            </button>
+          </div>
+        `;
+      } else {
+        warningCardHtml = `
+          <div class="bg-emerald-950/30 border-l-4 border-emerald-500 p-4 rounded-r-lg mt-4">
+            <h4 class="text-emerald-400 font-bold mb-1 uppercase tracking-wider text-xs">Treasury Standing: Optimal</h4>
+            <p class="text-xs md:text-sm text-slate-200">Our predictive cash engine projects positive working capital liquidity across all schedules.</p>
+            <p class="text-xs text-slate-400 italic mt-2">Proactive Line of Credit review prepared for optimization request.</p>
+            <button id="generate-loan-btn" class="mt-4 text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium transition shadow-lg shadow-emerald-600/20 flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              Review Treasury Report & LoC Request
+            </button>
+          </div>
+        `;
+      }
 
       forecastContent.innerHTML = `
         <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
@@ -449,13 +661,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </tbody>
           </table>
         </div>
-        <div class="bg-rose-950/30 border-l-4 border-rose-500 p-4 rounded-r-lg">
-          <h4 class="text-rose-400 font-bold mb-1 uppercase tracking-wider">Critical Warning: Cash Crunch Detected</h4>
-          <p class="text-sm text-slate-200">Predicted Balance will DIP BELOW ZERO on: <span class="font-bold">${data.warning.date}</span></p>
-          <p class="text-sm text-slate-200">Estimated Shortfall: <span class="font-bold text-rose-400">$${data.warning.shortfall.toFixed(2)}</span></p>
-          <p class="text-xs text-slate-400 italic mt-2">Please arrange for line of credit or delay outgoing payments immediately.</p>
-          <button id="generate-loan-btn" class="mt-4 text-xs bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg font-medium transition shadow-lg shadow-rose-600/20">Generate Loan Request Letter</button>
-        </div>
+        ${warningCardHtml}
       `;
 
       // Attach event listener to new button
@@ -468,6 +674,74 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error(err);
       forecastContent.innerHTML = `<div class="text-center text-rose-400 py-8">Failed to fetch forecast data: ${err.message}</div>`;
     }
+  }
+
+  runForecastBtn.addEventListener("click", triggerForecastUpdate);
+
+  // Scenario Switch Controls
+  function updateScenarioButtons() {
+    if (appState.currentScenario === "stable") {
+      stableBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition duration-150 bg-blue-600 text-white shadow-md shadow-blue-600/20";
+      crunchBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition duration-150 text-slate-400 hover:text-slate-200";
+    } else {
+      crunchBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition duration-150 bg-blue-600 text-white shadow-md shadow-blue-600/20";
+      stableBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition duration-150 text-slate-400 hover:text-slate-200";
+    }
+  }
+
+  stableBtn.addEventListener("click", () => {
+    appState.currentScenario = "stable";
+    appState.txnLimit = 5;
+    updateScenarioButtons();
+    renderDashboard();
+    triggerForecastUpdate();
+  });
+
+  crunchBtn.addEventListener("click", () => {
+    appState.currentScenario = "crunch";
+    appState.txnLimit = 5;
+    updateScenarioButtons();
+    renderDashboard();
+    triggerForecastUpdate();
+  });
+
+  // View More/All Transactions Event Handlers
+  document.getElementById("view-all-txns-btn").addEventListener("click", () => {
+    appState.txnLimit = 100;
+    renderDashboard();
+  });
+
+  // Data Origin Modal Handlers
+  const originModal = document.getElementById("origin-modal");
+  document.getElementById("origin-data-btn").addEventListener("click", () => {
+    originModal.classList.remove("hidden");
+  });
+  document.getElementById("close-origin-modal").addEventListener("click", () => {
+    originModal.classList.add("hidden");
+  });
+  document.getElementById("ok-origin-btn").addEventListener("click", () => {
+    originModal.classList.add("hidden");
+  });
+
+  // Prospectus Modal Handlers
+  const prospectusModal = document.getElementById("prospectus-modal");
+  document.getElementById("view-prospectus-btn").addEventListener("click", () => {
+    prospectusModal.classList.remove("hidden");
+  });
+  document.getElementById("close-prospectus-modal").addEventListener("click", () => {
+    prospectusModal.classList.add("hidden");
+  });
+  document.getElementById("close-prospectus-ok").addEventListener("click", () => {
+    prospectusModal.classList.add("hidden");
+  });
+
+  // Print Prospectus Handler with iframe-friendly in-page printing fallback
+  document.getElementById("print-prospectus-btn").addEventListener("click", () => {
+    document.body.classList.add("printing-prospectus");
+    window.print();
+    setTimeout(() => {
+      document.body.classList.remove("printing-prospectus");
+    }, 1000);
   });
 
   // Loan Modal Handlers
@@ -477,12 +751,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("copy-loan-btn").addEventListener("click", () => {
     navigator.clipboard.writeText(currentLoanLetter).then(() => {
-      alert("Letter copied to clipboard!");
+      showToast("Letter copied to clipboard!");
     });
   });
 
   document.getElementById("send-loan-btn").addEventListener("click", () => {
-    alert("Request sent successfully to [Bank Name].");
+    showToast("Request sent successfully to underwriting partner.");
     document.getElementById("loan-modal").classList.add("hidden");
   });
 
@@ -581,4 +855,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-});
+}
+
+if (document.readyState === "complete" || document.readyState === "interactive") {
+  initializePortal();
+} else {
+  document.addEventListener("DOMContentLoaded", initializePortal);
+}

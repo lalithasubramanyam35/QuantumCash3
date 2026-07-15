@@ -27,7 +27,7 @@
 <body class="bg-gradient-to-tr from-slate-950 via-slate-900 to-blue-950 min-h-screen text-slate-100 font-sans antialiased flex flex-col justify-between">
 
   <!-- TOP BAR / SIMULATOR BANNER -->
-  <div id="otp-simulator" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md bg-blue-950/90 border border-blue-500/30 rounded-xl shadow-2xl backdrop-blur-md p-4 animate-fade-in-up">
+  <div id="otp-simulator" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md bg-blue-950/90 border border-blue-500/30 rounded-xl shadow-2xl backdrop-blur-md p-4 animate-fade-in-up cursor-pointer hover:bg-blue-900/95 hover:border-blue-500/50 transition duration-150 select-none">
     <div class="flex items-center gap-3">
       <div class="bg-blue-600/20 p-2 rounded-lg text-blue-400">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -36,7 +36,7 @@
       </div>
       <div>
         <p class="text-xs font-semibold uppercase tracking-wider text-blue-400">Secure OTP SMS Simulator</p>
-        <p class="text-sm text-slate-200">Your mock verification code is: <span id="simulator-code" class="font-bold text-white tracking-widest bg-blue-900/50 px-2 py-0.5 rounded border border-blue-500/20">------</span></p>
+        <p class="text-sm text-slate-200">Your mock verification code is: <span id="simulator-code" class="font-bold text-white tracking-widest bg-blue-900/50 px-2 py-0.5 rounded border border-blue-500/20">------</span> <span class="text-[10px] text-blue-400 font-semibold block sm:inline mt-1 sm:mt-0 sm:ml-2">(Click to auto-fill)</span></p>
       </div>
     </div>
   </div>
@@ -104,14 +104,14 @@
         </div>
 
         <!-- reCAPTCHA Mockup -->
-        <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between shadow-inner">
+        <div id="captcha-container" class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between shadow-inner cursor-pointer select-none hover:border-slate-700/80 transition duration-150">
           <div class="flex items-center gap-3">
             <div class="relative flex items-center justify-center">
               <input type="checkbox" id="captcha-checkbox" 
                      class="w-6 h-6 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500/20 focus:ring-offset-slate-900 cursor-pointer">
             </div>
             <div>
-              <span id="captcha-status" class="text-xs text-slate-400">Please verify you are human</span>
+              <span id="captcha-status" class="text-xs text-slate-400 font-medium">Please verify you are human</span>
             </div>
           </div>
           <!-- reCAPTCHA Icon -->
@@ -211,6 +211,30 @@
       <!-- Dashboard Dashboard Container -->
       <div class="p-6 md:p-8 flex flex-col gap-6 md:gap-8 relative z-10">
         
+        <!-- SIMULATION CONTROL DECK -->
+        <div class="bg-blue-950/30 border border-blue-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-blue-500/10 text-blue-400 p-2 rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.3 1-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Simulation Control Deck</h4>
+              <p class="text-[11px] text-slate-400">Stress test predictive cash flow models with banking ledger scenarios</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 bg-slate-950/60 p-1 rounded-xl border border-slate-800/80">
+            <button id="scenario-stable-btn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition duration-150 bg-blue-600 text-white shadow-md shadow-blue-600/20">
+              Stable Growth
+            </button>
+            <button id="scenario-crunch-btn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition duration-150 text-slate-400 hover:text-slate-200">
+              Cash Crunch
+            </button>
+          </div>
+        </div>
+        
         <!-- Balance and Switch Account Panel -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
           
@@ -280,6 +304,68 @@
           </div>
         </div>
 
+        <!-- EXECUTIVE FINANCIAL SUMMARIES -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          <!-- DSCR Card -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Debt Service Coverage (DSCR)</span>
+              <div class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+            </div>
+            <div>
+              <p id="metric-dscr-value" class="text-2xl font-extrabold text-white">--</p>
+              <div class="flex items-center gap-1.5 mt-1.5">
+                <span id="metric-dscr-badge" class="px-2 py-0.5 text-[9px] font-bold rounded">--</span>
+                <span class="text-[10px] text-slate-400">vs 1.25 bank benchmark</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Runway Card -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Operating Cash Runway</span>
+              <div class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div>
+              <p id="metric-runway-value" class="text-2xl font-extrabold text-white">--</p>
+              <div class="flex items-center gap-1.5 mt-1.5">
+                <span id="metric-runway-badge" class="px-2 py-0.5 text-[9px] font-bold rounded">--</span>
+                <span id="metric-runway-desc" class="text-[10px] text-slate-400">operating runway remaining</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Risk Score Card -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Risk Assessment Score</span>
+              <div class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+            </div>
+            <div>
+              <p id="metric-risk-value" class="text-2xl font-extrabold text-white">--</p>
+              <div class="flex items-center gap-1.5 mt-1.5">
+                <span id="metric-risk-badge" class="px-2 py-0.5 text-[9px] font-bold rounded text-white">--</span>
+                <span class="text-[10px] text-slate-400">calculated via forecast engine</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
         <!-- Recent Transactions -->
         <div class="flex flex-col gap-3">
           <div class="flex items-center justify-between">
@@ -289,8 +375,15 @@
               Run Core Engine Forecast
             </button>
           </div>
-          <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl overflow-hidden shadow-inner flex flex-col" id="transaction-list">
-            <!-- Populated via Javascript -->
+          <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl overflow-hidden shadow-inner flex flex-col">
+            <div id="transaction-list" class="divide-y divide-slate-800/60">
+              <!-- Populated via Javascript -->
+            </div>
+            <div id="transaction-list-footer" class="p-3 border-t border-slate-800/60 flex justify-center bg-slate-950/20">
+              <button id="view-all-txns-btn" class="text-xs font-semibold text-blue-400 hover:text-blue-300 transition duration-150 py-1 px-4 rounded hover:bg-slate-800/30">
+                View All Transactions
+              </button>
+            </div>
           </div>
         </div>
 
@@ -308,6 +401,24 @@
             <div class="text-center text-slate-400 py-8">Fetching forecast data...</div>
           </div>
         </div>
+
+        <!-- BANK COMPLIANCE & PROSPECTUS CORE -->
+        <div class="border-t border-slate-800/80 pt-6 mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <button id="origin-data-btn" class="w-full sm:w-auto text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl border border-blue-500/20 bg-blue-950/10 hover:bg-blue-950/30 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Where is this data coming from?
+          </button>
+          
+          <button id="view-prospectus-btn" class="w-full sm:w-auto text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl border border-emerald-500/20 bg-emerald-950/10 hover:bg-emerald-950/30 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Review Investment Prospectus
+          </button>
+        </div>
+
       </div>
     </div>
   </main>
@@ -329,6 +440,152 @@
       <div class="p-4 border-t border-slate-800 bg-slate-950/50 flex justify-end gap-3">
         <button id="copy-loan-btn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-medium transition">Copy Letter</button>
         <button id="send-loan-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition shadow-lg shadow-blue-500/20">Send to [Bank Name]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Origin Explanation Modal -->
+  <div id="origin-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl text-slate-100">
+      <div class="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+        <h3 class="font-bold text-white flex items-center gap-2 text-base">
+          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Technical Documentation & Data Architecture
+        </h3>
+        <button id="close-origin-modal" class="text-slate-400 hover:text-white transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto space-y-6 text-sm leading-relaxed animate-fade-in">
+        <div>
+          <h4 class="text-blue-400 font-bold text-xs uppercase tracking-wider mb-2">Synthetic Data Demonstrations</h4>
+          <p class="text-slate-300">
+            This workspace operates entirely on high-fidelity synthetic financial data models designed to simulate realistic small business transaction profiles. Every invoice, daily customer receipt, software subscription, bi-weekly payroll, and monthly overhead is generated based on standard GAAP accounting conventions.
+          </p>
+        </div>
+        
+        <div>
+          <h4 class="text-blue-400 font-bold text-xs uppercase tracking-wider mb-2">Integration Readiness & API Pipeline</h4>
+          <p class="text-slate-300">
+            The core prediction and analysis pipeline is fully decoupled and ready to ingest real-time production banking data. By establishing secure connections via industry-standard banking APIs (such as Plaid, Yodlee, or direct Finicity connections), the platform can seamlessly transition from synthetic simulation to active live account telemetry.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="text-blue-400 font-bold text-xs uppercase tracking-wider mb-2">Technical Proof of Competence</h4>
+          <p class="text-slate-300">
+            For audit and verification purposes, this platform exposes production-grade APIs serving parsed data models in standard formats. Banking partners can query live endpoints directly:
+          </p>
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 mt-2 font-mono text-xs text-blue-300 space-y-1.5">
+            <div>
+              <span class="text-emerald-400 font-bold">[API] GET</span> <a href="/api/transactions?scenario=crunch" target="_blank" class="underline hover:text-blue-200">/api/transactions?scenario=crunch</a>
+              <span class="block text-slate-500 text-[10px] mt-0.5">Returns raw historical transactions from the stress-test ledger in JSON</span>
+            </div>
+            <div class="border-t border-slate-800/80 pt-1.5">
+              <span class="text-emerald-400 font-bold">[API] GET</span> <a href="/api/forecast?scenario=crunch" target="_blank" class="underline hover:text-blue-200">/api/forecast?scenario=crunch</a>
+              <span class="block text-slate-500 text-[10px] mt-0.5">Computes running balances, analyzes frequencies, and outputs 7-day predictive cash flow telemetry</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-blue-950/40 border border-blue-500/20 rounded-xl p-4">
+          <p class="text-xs text-blue-300 font-semibold mb-1">“We are proving we can build the pipeline that processes money.”</p>
+          <p class="text-xs text-slate-400 italic">
+            Focus is set on enterprise software reliability, sub-second transaction parsing, frequency extraction algorithms, and automated banking workflows.
+          </p>
+        </div>
+      </div>
+      <div class="p-4 border-t border-slate-800 bg-slate-950/50 flex justify-end">
+        <button id="ok-origin-btn" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold transition">Acknowledge</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Investment Prospectus Modal -->
+  <div id="prospectus-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden animate-fade-in">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+      <div class="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+        <h3 class="font-bold text-white flex items-center gap-2">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          Commercial & Technical Investment Prospectus
+        </h3>
+        <button id="close-prospectus-modal" class="text-slate-400 hover:text-white transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      
+      <!-- Prospectus Printable Document Area -->
+      <div class="p-8 overflow-y-auto bg-slate-50 text-slate-900 font-sans leading-relaxed text-sm space-y-6 flex-grow" id="prospectus-document">
+        <div class="text-center border-b border-slate-300 pb-6">
+          <p class="text-xs font-bold uppercase tracking-widest text-emerald-700">Confidential Investment Briefing</p>
+          <h1 class="text-3xl font-black text-slate-900 tracking-tight mt-1">QUANTUMCASH</h1>
+          <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest font-mono">Projected Predictive Cash Flow Platform for Small Business Banking</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-600 border-b border-slate-200 pb-4">
+          <div>
+            <p><strong>Prepared By:</strong> Gandikota Lalitha Subramanyam</p>
+            <p><strong>Designation:</strong> Chief Software Architect & CS Student</p>
+          </div>
+          <div class="md:text-right">
+            <p><strong>Version:</strong> v1.0.0 (Production Prototype)</p>
+            <p><strong>Date:</strong> July 15, 2026</p>
+          </div>
+        </div>
+
+        <section class="space-y-2">
+          <h2 class="text-base font-bold text-slate-950 border-l-4 border-emerald-600 pl-2 uppercase tracking-wide">1. The Problem: The Cash Flow Visibility Gap</h2>
+          <p class="text-slate-800 text-xs md:text-sm">
+            Small business failure is rarely caused by a fundamental lack of profitability. Rather, it is driven by <strong>timing mismatches</strong>. Over 82% of commercial bankruptcies are due to poor cash flow management—often where a business has high-value receivable contracts but experiences a sudden critical liquidity shortfall because supplier expenses, payroll commitments, and utility payments coincide before receipts are cleared. Current legacy commercial banking portals operate in a strictly rearview mode, informing treasurers of what they spent yesterday rather than warning them of shortfalls next week.
+          </p>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-base font-bold text-slate-950 border-l-4 border-emerald-600 pl-2 uppercase tracking-wide">2. The Technology: AI-Powered Core Predictive Engine</h2>
+          <p class="text-slate-800 text-xs md:text-sm">
+            QuantumCash bridges the visibility gap through a proprietary, automated forecasting engine. The technology operates on three distinct layers:
+          </p>
+          <ul class="list-disc list-inside text-xs md:text-sm text-slate-800 space-y-1.5 pl-2 font-sans">
+            <li><strong>Frequency Extraction Protocol:</strong> Processes standard ledger CSV entries to map recurring daily receipts, periodic supplier draws (weekly), SaaS utilities (monthly), and staffing costs (bi-weekly).</li>
+            <li><strong>Automated Forward Forecasting:</strong> Computes running balances dynamically over a rolling 7-day window. It detects negative balance intersections (crunches) before they occur.</li>
+            <li><strong>Generative LLM Underwriting:</strong> If a cash crunch is imminent, the engine communicates with Google Gemini to automatically draft a professional, mathematically justified loan application letter with precise repayment terms tailored to a banking partner.</li>
+          </ul>
+        </section>
+
+        <section class="space-y-2">
+          <h2 class="text-base font-bold text-slate-950 border-l-4 border-emerald-600 pl-2 uppercase tracking-wide">3. Commercial Roadmap: 2026 – 2028</h2>
+          <p class="text-slate-800 text-xs md:text-sm">
+            We are positioning QuantumCash to become the definitive forecasting and credit bridge middleware for digital banks:
+          </p>
+          <div class="space-y-3 pl-2">
+            <div class="flex gap-4">
+              <span class="font-bold text-emerald-700 text-xs font-mono shrink-0">H2 2026</span>
+              <p class="text-slate-800 text-xs"><strong>Plaid & Yodlee Integration:</strong> Move from file-based synthetic uploads to live read-only ledger polling across multi-account commercial profiles.</p>
+            </div>
+            <div class="flex gap-4">
+              <span class="font-bold text-emerald-700 text-xs font-mono shrink-0">H1 2027</span>
+              <p class="text-slate-800 text-xs"><strong>Automated Micro-Lending Portal:</strong> Establish partner credit routes letting commercial lenders review automated micro-letters with real-time risk scores, cutting loan approval cycles from weeks to seconds.</p>
+            </div>
+            <div class="flex gap-4">
+              <span class="font-bold text-emerald-700 text-xs font-mono shrink-0">FY 2028</span>
+              <p class="text-slate-800 text-xs"><strong>Enterprise API SDK:</strong> Release a highly scalable predictive SaaS endpoint for integration into external small business ERP systems, billing software, and accounting apps.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="border-t border-slate-300 pt-4 text-center text-[10px] text-slate-400 italic">
+          Gandikota Lalitha Subramanyam © 2026. Confidential material prepared for banking partner evaluation.
+        </section>
+      </div>
+      
+      <div class="p-4 border-t border-slate-800 bg-slate-950/50 flex justify-end gap-3">
+        <button id="print-prospectus-btn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition border border-slate-700 flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          Print / Download PDF
+        </button>
+        <button id="close-prospectus-ok" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition shadow-lg shadow-emerald-600/20">Close</button>
       </div>
     </div>
   </div>

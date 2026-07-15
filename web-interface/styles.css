@@ -69,3 +69,81 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(59, 130, 246, 0.6);
 }
+
+/* Printing Optimization Fallbacks for Sandboxed iFrames */
+@media print {
+  body.printing-prospectus > * {
+    display: none !important;
+  }
+  body.printing-prospectus #prospectus-modal {
+    display: block !important;
+    position: static !important;
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: auto !important;
+    overflow: visible !important;
+  }
+  body.printing-prospectus #prospectus-modal > div {
+    border: none !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    color: black !important;
+    overflow: visible !important;
+  }
+  body.printing-prospectus #prospectus-document {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+  body.printing-prospectus #prospectus-modal button,
+  body.printing-prospectus #prospectus-modal .border-b,
+  body.printing-prospectus #close-prospectus-modal,
+  body.printing-prospectus #close-prospectus-ok,
+  body.printing-prospectus #print-prospectus-btn,
+  body.printing-prospectus .border-t {
+    display: none !important;
+  }
+
+  body.printing-loan-letter > * {
+    display: none !important;
+  }
+  body.printing-loan-letter #loan-modal {
+    display: block !important;
+    position: static !important;
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: auto !important;
+    overflow: visible !important;
+  }
+  body.printing-loan-letter #loan-modal > div {
+    border: none !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    color: black !important;
+    overflow: visible !important;
+  }
+  body.printing-loan-letter #loan-letter-content {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+  body.printing-loan-letter #loan-modal button,
+  body.printing-loan-letter #close-loan-modal,
+  body.printing-loan-letter #copy-loan-btn,
+  body.printing-loan-letter #send-loan-btn,
+  body.printing-loan-letter .border-t {
+    display: none !important;
+  }
+}
