@@ -304,7 +304,7 @@ async function renderDashboard() {
 function initializePortal() {
   // Seed / Demo User Configuration
   const demoEmail = "treasury@quantumcash.com";
-  const demoPhone = "+1 (555) 000-0000";
+  const demoPhone = "+91 6303490644";
   const demoName = "Gandikota Lalitha Subramanyam";
 
   // Scenario Switch Controls
