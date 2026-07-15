@@ -336,7 +336,14 @@ function initializePortal() {
     // Reset state & inputs
     document.getElementById("auth-form").reset();
     appState.captchaVerified = false;
-    document.getElementById("captcha-checkbox").checked = false;
+    if (document.getElementById("captcha-box")) {
+      document.getElementById("captcha-box").classList.remove("hidden");
+      document.getElementById("captcha-spinner").classList.add("hidden");
+      document.getElementById("captcha-check").classList.add("hidden");
+    }
+    if (document.getElementById("captcha-challenge")) {
+      document.getElementById("captcha-challenge").classList.add("hidden");
+    }
     document.getElementById("captcha-status").textContent = "Please verify you are human";
     document.getElementById("captcha-status").className = "text-xs text-slate-400";
 
@@ -355,28 +362,136 @@ function initializePortal() {
     }
   });
 
-  // Mock reCAPTCHA verification (with full card click wrapper)
-  const captchaCheckbox = document.getElementById("captcha-checkbox");
-  const captchaStatus = document.getElementById("captcha-status");
+  // Mock reCAPTCHA verification with Text Challenge
   const captchaContainer = document.getElementById("captcha-container");
+  const captchaBox = document.getElementById("captcha-box");
+  const captchaSpinner = document.getElementById("captcha-spinner");
+  const captchaCheck = document.getElementById("captcha-check");
+  const captchaStatus = document.getElementById("captcha-status");
+  
+  const captchaChallenge = document.getElementById("captcha-challenge");
+  const captchaCanvas = document.getElementById("captcha-canvas");
+  const captchaInput = document.getElementById("captcha-input");
+  const captchaVerifyBtn = document.getElementById("captcha-verify-btn");
+  const captchaRefreshBtn = document.getElementById("captcha-refresh");
+  const captchaError = document.getElementById("captcha-error");
+  
+  let currentCaptchaText = "";
 
-  captchaCheckbox.addEventListener("change", () => {
-    if (captchaCheckbox.checked) {
-      captchaStatus.textContent = "reCAPTCHA Verified Successfully";
-      captchaStatus.className = "text-xs text-emerald-400 font-medium";
-      appState.captchaVerified = true;
-    } else {
-      captchaStatus.textContent = "Please verify you are human";
-      captchaStatus.className = "text-xs text-slate-400 font-medium";
-      appState.captchaVerified = false;
+  function generateCaptchaText() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed similar looking chars
+    let text = "";
+    for (let i = 0; i < 6; i++) {
+      text += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-  });
+    return text;
+  }
 
-  if (captchaContainer) {
-    captchaContainer.addEventListener("click", (e) => {
-      if (e.target !== captchaCheckbox) {
-        captchaCheckbox.checked = !captchaCheckbox.checked;
-        captchaCheckbox.dispatchEvent(new Event("change"));
+  function drawCaptcha() {
+    if (!captchaCanvas) return;
+    const ctx = captchaCanvas.getContext("2d");
+    const width = captchaCanvas.width;
+    const height = captchaCanvas.height;
+    
+    ctx.clearRect(0, 0, width, height);
+    
+    // Background noise
+    ctx.fillStyle = "#1e293b"; // slate-800
+    ctx.fillRect(0, 0, width, height);
+    
+    for (let i = 0; i < 30; i++) {
+      ctx.fillStyle = Math.random() > 0.5 ? "#334155" : "#475569";
+      ctx.beginPath();
+      ctx.arc(Math.random() * width, Math.random() * height, Math.random() * 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    currentCaptchaText = generateCaptchaText();
+    
+    // Draw text with distortion
+    ctx.font = "bold 28px 'Courier New', monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    
+    for (let i = 0; i < currentCaptchaText.length; i++) {
+      const char = currentCaptchaText[i];
+      const x = 30 + i * 24;
+      const y = height / 2 + (Math.random() * 10 - 5);
+      const angle = (Math.random() * 0.4) - 0.2;
+      
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.fillStyle = "#e2e8f0"; // slate-200
+      ctx.fillText(char, 0, 0);
+      ctx.restore();
+    }
+    
+    // Draw interference lines
+    for (let i = 0; i < 4; i++) {
+      ctx.strokeStyle = Math.random() > 0.5 ? "#3b82f6" : "#64748b"; // blue-500 or slate-500
+      ctx.lineWidth = Math.random() * 1.5 + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(Math.random() * width, Math.random() * height);
+      ctx.lineTo(Math.random() * width, Math.random() * height);
+      ctx.stroke();
+    }
+  }
+
+  if (captchaContainer && captchaChallenge) {
+    captchaContainer.addEventListener("click", () => {
+      if (appState.captchaVerified) return; // Already verified
+      
+      // Hide box, show spinner temporarily
+      captchaBox.classList.add("hidden");
+      captchaSpinner.classList.remove("hidden");
+      captchaStatus.textContent = "Loading challenge...";
+      captchaStatus.className = "text-xs text-blue-400";
+      
+      // Simulate network delay for verification challenge
+      setTimeout(() => {
+        captchaSpinner.classList.add("hidden");
+        captchaBox.classList.remove("hidden");
+        captchaStatus.textContent = "Please complete the challenge below";
+        captchaStatus.className = "text-xs text-blue-400 font-medium";
+        
+        captchaChallenge.classList.remove("hidden");
+        drawCaptcha();
+        captchaInput.value = "";
+        captchaInput.focus();
+        captchaError.classList.add("hidden");
+      }, 600);
+    });
+    
+    captchaRefreshBtn.addEventListener("click", () => {
+      drawCaptcha();
+      captchaInput.value = "";
+      captchaInput.focus();
+      captchaError.classList.add("hidden");
+    });
+    
+    captchaVerifyBtn.addEventListener("click", () => {
+      if (captchaInput.value.toUpperCase() === currentCaptchaText) {
+        // Success
+        captchaChallenge.classList.add("hidden");
+        captchaBox.classList.add("hidden");
+        captchaCheck.classList.remove("hidden");
+        captchaStatus.textContent = "reCAPTCHA Verified Successfully";
+        captchaStatus.className = "text-xs text-emerald-400 font-medium";
+        appState.captchaVerified = true;
+      } else {
+        // Failure
+        captchaError.classList.remove("hidden");
+        drawCaptcha();
+        captchaInput.value = "";
+        captchaInput.focus();
+      }
+    });
+    
+    captchaInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        captchaVerifyBtn.click();
       }
     });
   }
