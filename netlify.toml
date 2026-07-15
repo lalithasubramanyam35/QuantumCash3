@@ -1,6 +1,6 @@
 [build]
   base = "."
-  publish = "web-interface"
+  publish = "dist/"
   functions = "netlify/functions"
   command = "npm run build"
 

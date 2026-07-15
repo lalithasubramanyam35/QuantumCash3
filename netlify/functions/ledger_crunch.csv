@@ -1,0 +1,76 @@
+date,transaction_id,type,amount,category,description
+2026-06-14,TXN_INIT,INFLOW,9000.0,Initial_Balance,Starting business balance
+2026-06-14,TXN_00001,INFLOW,157.39,Sales,Daily customer sales revenue
+2026-06-14,TXN_00002,OUTFLOW,67.9,Overhead,Daily operating expenses
+2026-06-15,TXN_00003,INFLOW,259.75,Sales,Daily customer sales revenue
+2026-06-15,TXN_00004,OUTFLOW,62.91,Overhead,Daily operating expenses
+2026-06-15,TXN_00005,OUTFLOW,1200.0,Suppliers,Weekly inventory restocking
+2026-06-16,TXN_00006,INFLOW,329.38,Sales,Daily customer sales revenue
+2026-06-16,TXN_00007,OUTFLOW,83.02,Overhead,Daily operating expenses
+2026-06-17,TXN_00008,INFLOW,358.78,Sales,Daily customer sales revenue
+2026-06-17,TXN_00009,OUTFLOW,64.06,Overhead,Daily operating expenses
+2026-06-17,TXN_00010,OUTFLOW,150.0,Utilities,SaaS subscriptions and utilities
+2026-06-18,TXN_00011,INFLOW,268.81,Sales,Daily customer sales revenue
+2026-06-18,TXN_00012,OUTFLOW,113.69,Overhead,Daily operating expenses
+2026-06-19,TXN_00013,INFLOW,188.36,Sales,Daily customer sales revenue
+2026-06-19,TXN_00014,OUTFLOW,117.75,Overhead,Daily operating expenses
+2026-06-19,TXN_00015,OUTFLOW,2500.0,Payroll,Bi-weekly employee payroll
+2026-06-20,TXN_00016,INFLOW,149.35,Sales,Daily customer sales revenue
+2026-06-20,TXN_00017,OUTFLOW,60.61,Overhead,Daily operating expenses
+2026-06-21,TXN_00018,INFLOW,152.81,Sales,Daily customer sales revenue
+2026-06-21,TXN_00019,OUTFLOW,50.2,Overhead,Daily operating expenses
+2026-06-22,TXN_00020,INFLOW,230.57,Sales,Daily customer sales revenue
+2026-06-22,TXN_00021,OUTFLOW,105.01,Overhead,Daily operating expenses
+2026-06-22,TXN_00022,OUTFLOW,1200.0,Suppliers,Weekly inventory restocking
+2026-06-23,TXN_00023,INFLOW,328.32,Sales,Daily customer sales revenue
+2026-06-23,TXN_00024,OUTFLOW,107.2,Overhead,Daily operating expenses
+2026-06-24,TXN_00025,INFLOW,267.16,Sales,Daily customer sales revenue
+2026-06-24,TXN_00026,OUTFLOW,95.42,Overhead,Daily operating expenses
+2026-06-24,TXN_00027,OUTFLOW,150.0,Utilities,SaaS subscriptions and utilities
+2026-06-25,TXN_00028,INFLOW,253.53,Sales,Daily customer sales revenue
+2026-06-25,TXN_00029,OUTFLOW,105.7,Overhead,Daily operating expenses
+2026-06-26,TXN_00030,INFLOW,267.45,Sales,Daily customer sales revenue
+2026-06-26,TXN_00031,OUTFLOW,110.16,Overhead,Daily operating expenses
+2026-06-27,TXN_00032,INFLOW,94.77,Sales,Daily customer sales revenue
+2026-06-27,TXN_00033,OUTFLOW,50.7,Overhead,Daily operating expenses
+2026-06-28,TXN_00034,INFLOW,163.47,Sales,Daily customer sales revenue
+2026-06-28,TXN_00035,OUTFLOW,96.88,Overhead,Daily operating expenses
+2026-06-29,TXN_00036,INFLOW,337.87,Sales,Daily customer sales revenue
+2026-06-29,TXN_00037,OUTFLOW,71.53,Overhead,Daily operating expenses
+2026-06-29,TXN_00038,OUTFLOW,1200.0,Suppliers,Weekly inventory restocking
+2026-06-30,TXN_00039,INFLOW,304.7,Sales,Daily customer sales revenue
+2026-06-30,TXN_00040,OUTFLOW,76.48,Overhead,Daily operating expenses
+2026-07-01,TXN_00041,INFLOW,300.78,Sales,Daily customer sales revenue
+2026-07-01,TXN_00042,OUTFLOW,96.49,Overhead,Daily operating expenses
+2026-07-01,TXN_00043,OUTFLOW,150.0,Utilities,SaaS subscriptions and utilities
+2026-07-01,TXN_00044,OUTFLOW,1800.0,Rent,Monthly retail space lease
+2026-07-02,TXN_00045,INFLOW,351.3,Sales,Daily customer sales revenue
+2026-07-02,TXN_00046,OUTFLOW,67.39,Overhead,Daily operating expenses
+2026-07-03,TXN_00047,INFLOW,187.2,Sales,Daily customer sales revenue
+2026-07-03,TXN_00048,OUTFLOW,98.81,Overhead,Daily operating expenses
+2026-07-03,TXN_00049,OUTFLOW,2500.0,Payroll,Bi-weekly employee payroll
+2026-07-04,TXN_00050,INFLOW,88.22,Sales,Daily customer sales revenue
+2026-07-04,TXN_00051,OUTFLOW,77.05,Overhead,Daily operating expenses
+2026-07-05,TXN_00052,INFLOW,75.81,Sales,Daily customer sales revenue
+2026-07-05,TXN_00053,OUTFLOW,86.58,Overhead,Daily operating expenses
+2026-07-06,TXN_00054,INFLOW,359.53,Sales,Daily customer sales revenue
+2026-07-06,TXN_00055,OUTFLOW,119.22,Overhead,Daily operating expenses
+2026-07-06,TXN_00056,OUTFLOW,1200.0,Suppliers,Weekly inventory restocking
+2026-07-07,TXN_00057,INFLOW,263.84,Sales,Daily customer sales revenue
+2026-07-07,TXN_00058,OUTFLOW,58.91,Overhead,Daily operating expenses
+2026-07-08,TXN_00059,INFLOW,227.73,Sales,Daily customer sales revenue
+2026-07-08,TXN_00060,OUTFLOW,60.12,Overhead,Daily operating expenses
+2026-07-08,TXN_00061,OUTFLOW,150.0,Utilities,SaaS subscriptions and utilities
+2026-07-09,TXN_00062,INFLOW,269.49,Sales,Daily customer sales revenue
+2026-07-09,TXN_00063,OUTFLOW,86.61,Overhead,Daily operating expenses
+2026-07-10,TXN_00064,INFLOW,350.29,Sales,Daily customer sales revenue
+2026-07-10,TXN_00065,OUTFLOW,69.22,Overhead,Daily operating expenses
+2026-07-11,TXN_00066,INFLOW,118.13,Sales,Daily customer sales revenue
+2026-07-11,TXN_00067,OUTFLOW,73.31,Overhead,Daily operating expenses
+2026-07-12,TXN_00068,INFLOW,92.24,Sales,Daily customer sales revenue
+2026-07-12,TXN_00069,OUTFLOW,54.58,Overhead,Daily operating expenses
+2026-07-13,TXN_00070,INFLOW,344.03,Sales,Daily customer sales revenue
+2026-07-13,TXN_00071,OUTFLOW,61.06,Overhead,Daily operating expenses
+2026-07-13,TXN_00072,OUTFLOW,1200.0,Suppliers,Weekly inventory restocking
+2026-07-14,TXN_00073,INFLOW,397.89,Sales,Daily customer sales revenue
+2026-07-14,TXN_00074,OUTFLOW,89.06,Overhead,Daily operating expenses
