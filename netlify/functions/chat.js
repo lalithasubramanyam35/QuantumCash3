@@ -1,3 +1,39 @@
+import https from 'https';
+
+// Safe fetch utility supporting old Node versions
+async function safeFetch(url, options = {}) {
+  if (typeof fetch !== 'undefined') {
+    return fetch(url, options);
+  }
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(url);
+    const reqOptions = {
+      method: options.method || 'GET',
+      headers: options.headers || {},
+      hostname: urlObj.hostname,
+      path: urlObj.pathname + urlObj.search,
+      port: 443
+    };
+    const req = https.request(reqOptions, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        resolve({
+          ok: res.statusCode >= 200 && res.statusCode < 300,
+          status: res.statusCode,
+          json: async () => JSON.parse(data),
+          text: async () => data
+        });
+      });
+    });
+    req.on('error', (err) => { reject(err); });
+    if (options.body) {
+      req.write(typeof options.body === 'string' ? options.body : JSON.stringify(options.body));
+    }
+    req.end();
+  });
+}
+
 export const handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return {
@@ -27,7 +63,7 @@ export const handler = async (event, context) => {
       ...messages
     ];
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    const response = await safeFetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

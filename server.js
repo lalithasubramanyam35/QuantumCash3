@@ -299,16 +299,17 @@ The letter should be structured with clear headings like "Context & Financial An
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.1-flash-lite',
       contents: prompt,
     });
     
     forecastData.loanLetter = response.text;
     res.json(forecastData);
   } catch (error) {
+    console.error("Gemini API Error in /api/forecast:", error);
     // Graceful fallback for API invocation errors, avoiding console warnings that clutter system reports
     forecastData.loanLetter = scenario === 'crunch' ? fallbackCrunchLetter : fallbackStableLetter;
-    res.json(forecastData);
+    return res.json(forecastData);
   }
 });
 
@@ -340,12 +341,13 @@ app.post('/api/chat', async (req, res) => {
     ];
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.1-flash-lite',
       contents: formattedMessages,
     });
 
     res.json({ reply: response.text });
   } catch (error) {
+    console.error("Gemini API Error in /api/chat:", error);
     // Graceful fallback response on model/network error without throwing system warning alerts
     res.json({ reply: "I'm the QuantumCash Virtual Assistant. It seems my connection to the AI engine is currently offline or unconfigured. How can I help you manually today?" });
   }

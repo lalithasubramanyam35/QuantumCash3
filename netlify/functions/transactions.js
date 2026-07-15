@@ -1,15 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-let __filename = '';
-let __dirname = '';
-try {
-  __filename = fileURLToPath(import.meta.url);
-  __dirname = path.dirname(__filename);
-} catch (e) {
-  console.warn("Could not determine __dirname via fileURLToPath:", e.message);
-}
 
 // CSV Parser helper (100% synchronous & robust)
 function parseLedgerCSV(filePath) {
@@ -55,14 +45,6 @@ function getFilePath(scenario) {
     path.join('/var/task/netlify/functions', fileName),
     path.join('/var/task/src', fileName)
   ];
-  
-  if (__dirname) {
-    candidates.push(
-      path.join(__dirname, `../../${fileName}`),
-      path.join(__dirname, `..`, `..`, fileName),
-      path.join(__dirname, fileName)
-    );
-  }
   
   for (const c of candidates) {
     try {
