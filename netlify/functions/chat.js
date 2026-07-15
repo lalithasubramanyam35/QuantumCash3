@@ -7,11 +7,13 @@ export const handler = async (event, context) => {
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
+  const isInvalidKey = !apiKey || apiKey.startsWith('YOUR_') || apiKey === 'placeholder' || apiKey === 'undefined';
+
+  if (isInvalidKey) {
     return {
-      statusCode: 500,
+      statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: "GEMINI_API_KEY environment variable is not set in Netlify." })
+      body: JSON.stringify({ reply: "I'm the QuantumCash Virtual Assistant! My AI engine is currently offline or unconfigured on Netlify, but I can still help you navigate the secure banking portal!" })
     };
   }
 
