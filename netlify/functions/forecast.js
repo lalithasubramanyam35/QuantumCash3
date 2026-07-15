@@ -2,8 +2,14 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let __filename = '';
+let __dirname = '';
+try {
+  __filename = fileURLToPath(import.meta.url);
+  __dirname = path.dirname(__filename);
+} catch (e) {
+  console.warn("Could not determine __dirname via fileURLToPath:", e.message);
+}
 
 // CSV Parser helper (100% synchronous & robust)
 function parseLedgerCSV(filePath) {
@@ -44,16 +50,27 @@ function getFilePath(scenario) {
   const candidates = [
     path.join(process.cwd(), fileName),
     path.join(process.cwd(), 'src', fileName),
-    path.join(__dirname, `../../${fileName}`),
-    path.join(__dirname, `..`, `..`, fileName),
-    path.join(__dirname, fileName),
+    path.join(process.cwd(), 'netlify', 'functions', fileName),
     path.join('/var/task', fileName),
+    path.join('/var/task/netlify/functions', fileName),
     path.join('/var/task/src', fileName)
   ];
   
+  if (__dirname) {
+    candidates.push(
+      path.join(__dirname, `../../${fileName}`),
+      path.join(__dirname, `..`, `..`, fileName),
+      path.join(__dirname, fileName)
+    );
+  }
+  
   for (const c of candidates) {
-    if (fs.existsSync(c)) {
-      return c;
+    try {
+      if (fs.existsSync(c)) {
+        return c;
+      }
+    } catch (e) {
+      console.warn(`Error checking candidate path ${c}:`, e.message);
     }
   }
   return null;
