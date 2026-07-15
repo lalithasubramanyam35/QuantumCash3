@@ -1,0 +1,10 @@
+[build]
+  base = "."
+  publish = "web-interface"
+  functions = "netlify/functions"
+  command = "npm run build"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200

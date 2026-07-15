@@ -1,0 +1,21 @@
+{
+  "name": "applet",
+  "version": "1.0.0",
+  "description": "> \"Imagine a weather forecast app, but for a business's bank account. Instead of telling you it's going to rain, our system predicts exactly when your business will run out of money—and then it automatically writes a letter to the bank to get you a raincoat!\" 🌧️💼",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node server.js",
+    "build": "echo 'No build step'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^2.11.0",
+    "csv-parser": "^3.2.1",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "type": "module"
+}

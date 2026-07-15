@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantumCash - Premium Secure Banking Portal</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <!-- Local Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient-to-tr from-slate-950 via-slate-900 to-blue-950 min-h-screen text-slate-100 font-sans antialiased flex flex-col justify-between">
+
+  <!-- TOP BAR / SIMULATOR BANNER -->
+  <div id="otp-simulator" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md bg-blue-950/90 border border-blue-500/30 rounded-xl shadow-2xl backdrop-blur-md p-4 animate-fade-in-up">
+    <div class="flex items-center gap-3">
+      <div class="bg-blue-600/20 p-2 rounded-lg text-blue-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-blue-400">Secure OTP SMS Simulator</p>
+        <p class="text-sm text-slate-200">Your mock verification code is: <span id="simulator-code" class="font-bold text-white tracking-widest bg-blue-900/50 px-2 py-0.5 rounded border border-blue-500/20">------</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN WRAPPER -->
+  <main class="flex-grow flex items-center justify-center p-4">
+
+    <!-- AUTHENTICATION CONTAINER (LOGIN / REGISTER) -->
+    <div id="auth-screen" class="w-full max-w-md glass-panel rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden animate-fade-in-up">
+      <!-- Gradient glows -->
+      <div class="absolute -top-24 -left-24 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-emerald-600/10 rounded-full blur-3xl"></div>
+      
+      <!-- Brand Logo -->
+      <div class="flex flex-col items-center mb-8 relative z-10">
+        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-3.5 rounded-2xl shadow-lg shadow-blue-500/20 mb-3">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight text-white">QuantumCash</h1>
+        <p class="text-xs text-blue-400 font-medium mt-1 uppercase tracking-widest">Treasury Portal</p>
+      </div>
+
+      <!-- Header Titles -->
+      <div class="mb-6 relative z-10 text-center">
+        <h2 id="auth-title" class="text-xl font-bold text-slate-100">Secure Vault Access</h2>
+        <p id="auth-subtitle" class="text-sm text-slate-400 mt-1">Enter your credentials to access your treasury</p>
+      </div>
+
+      <!-- Error Message Container -->
+      <div id="auth-error-msg" class="hidden bg-rose-950/50 border border-rose-500/50 text-rose-400 text-xs rounded-xl p-3 mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span id="auth-error-text"></span>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="auth-form" class="space-y-4 relative z-10" autocomplete="off">
+        
+        <!-- Registration Name Field (Hidden by default in Login mode) -->
+        <div id="name-field-group" class="hidden">
+          <label for="name" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Authorized Name</label>
+          <div class="relative">
+            <input type="text" id="name" placeholder="John Doe" 
+                   class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-3 px-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition duration-200 text-sm">
+          </div>
+        </div>
+
+        <!-- Email Field -->
+        <div>
+          <label for="email" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Secure Email</label>
+          <div class="relative">
+            <input type="email" id="email" required placeholder="name@company.com" 
+                   class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-3 px-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition duration-200 text-sm">
+          </div>
+        </div>
+
+        <!-- Phone Field -->
+        <div>
+          <label for="phone" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Phone Number (For OTP Verification)</label>
+          <div class="relative">
+            <input type="tel" id="phone" required placeholder="+1 (555) 000-0000" 
+                   class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-3 px-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition duration-200 text-sm">
+          </div>
+        </div>
+
+        <!-- reCAPTCHA Mockup -->
+        <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between shadow-inner">
+          <div class="flex items-center gap-3">
+            <div class="relative flex items-center justify-center">
+              <input type="checkbox" id="captcha-checkbox" 
+                     class="w-6 h-6 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500/20 focus:ring-offset-slate-900 cursor-pointer">
+            </div>
+            <div>
+              <span id="captcha-status" class="text-xs text-slate-400">Please verify you are human</span>
+            </div>
+          </div>
+          <!-- reCAPTCHA Icon -->
+          <div class="flex flex-col items-center">
+            <svg class="w-6 h-6 text-blue-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17.5M4 12V4m0 0h8"></path>
+            </svg>
+            <span class="text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-tighter">reCAPTCHA</span>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button type="submit" 
+                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30 transition duration-200 flex items-center justify-center gap-2 text-sm mt-6">
+          <span id="submit-button-text">Generate OTP and Sign In</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </form>
+
+      <!-- Toggle Links -->
+      <div class="mt-6 text-center relative z-10">
+        <a href="#" id="toggle-auth-link" class="text-xs text-blue-400 hover:text-blue-300 font-medium transition duration-150">New to QuantumCash? Register Account</a>
+      </div>
+    </div>
+
+
+    <!-- OTP VERIFICATION SCREEN -->
+    <div id="otp-screen" class="w-full max-w-md glass-panel rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden animate-fade-in hidden">
+      <div class="absolute -top-24 -left-24 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl"></div>
+      
+      <div class="flex flex-col items-center mb-6 relative z-10 text-center">
+        <div class="bg-blue-600/20 text-blue-400 p-4 rounded-full mb-4 animate-pulse-border">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-slate-100">Verify Identity</h2>
+        <p class="text-sm text-slate-400 mt-2">A 6-digit OTP has been sent via SMS to your secure mobile device. Please input it below.</p>
+      </div>
+
+      <!-- Error Message Container -->
+      <div id="otp-error-msg" class="hidden bg-rose-950/50 border border-rose-500/50 text-rose-400 text-xs rounded-xl p-3 mb-4 flex items-center gap-2 relative z-10">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span id="otp-error-text"></span>
+      </div>
+
+      <form id="otp-form" class="space-y-6 relative z-10">
+        <div>
+          <label for="otp-code" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 text-center">Verification Code</label>
+          <input type="text" id="otp-code" required placeholder="000000" maxlength="6" pattern="\d{6}"
+                 class="w-full text-center tracking-[0.5em] text-2xl font-bold bg-slate-900/60 border border-slate-800 rounded-xl py-3 px-4 text-slate-100 placeholder-slate-700 focus:outline-none focus:border-blue-500 transition duration-200">
+        </div>
+
+        <button type="submit" 
+                class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/20 hover:shadow-emerald-500/30 transition duration-200 flex items-center justify-center gap-2 text-sm">
+          <span>Authorize Access</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
+          </svg>
+        </button>
+      </form>
+
+      <div class="mt-6 flex flex-col gap-3 items-center relative z-10 text-xs">
+        <button id="resend-otp-btn" class="text-blue-400 hover:text-blue-300 font-medium transition duration-150">Resend Code</button>
+        <button id="cancel-otp-btn" class="text-slate-500 hover:text-slate-400 transition duration-150">Cancel & Return</button>
+      </div>
+    </div>
+
+
+    <!-- ACCOUNT DASHBOARD SCREEN -->
+    <div id="dashboard-screen" class="w-full max-w-4xl glass-panel rounded-3xl shadow-2xl relative overflow-hidden flex flex-col animate-fade-in hidden">
+      <!-- Navigation Header -->
+      <header class="border-b border-slate-800 px-6 py-4 flex items-center justify-between bg-slate-950/40 relative z-10">
+        <div class="flex items-center gap-2.5">
+          <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-2 rounded-lg text-white">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 009 11V7a2 2 0 00-2-2H6a2 2 0 00-2 2v3.666a8.967 8.967 0 002.3 5.925l-.047.05"></path>
+            </svg>
+          </div>
+          <span class="font-bold tracking-tight text-white">QuantumCash <span class="text-xs text-blue-500 font-medium ml-1">Portal</span></span>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="hidden sm:flex flex-col items-right text-right">
+            <span class="text-xs text-slate-400">Authenticated Representative</span>
+            <span id="user-display-name" class="text-sm font-semibold text-slate-200">User Name</span>
+          </div>
+          <button id="sign-out-btn" 
+                  class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold border border-slate-700/60 transition duration-200">
+            Sign Out
+          </button>
+        </div>
+      </header>
+
+      <!-- Dashboard Dashboard Container -->
+      <div class="p-6 md:p-8 flex flex-col gap-6 md:gap-8 relative z-10">
+        
+        <!-- Balance and Switch Account Panel -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          
+          <!-- Balance Display Card -->
+          <div class="md:col-span-8 bg-gradient-to-br from-slate-900/80 to-blue-950/40 border border-slate-800/80 rounded-2xl p-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full blur-2xl"></div>
+            
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <p id="account-title" class="font-bold text-lg text-slate-100">Primary Operating Account</p>
+                <p id="account-number" class="text-xs text-slate-500 tracking-widest font-mono mt-0.5">•••• •••• •••• 4920</p>
+              </div>
+              <span id="account-type-badge" class="bg-blue-600/20 border border-blue-500/20 text-blue-400 text-xs font-semibold px-2.5 py-1 rounded-md">Checking</span>
+            </div>
+            
+            <div>
+              <p class="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Available Ledger Balance</p>
+              <p id="account-balance" class="text-3xl md:text-4xl font-extrabold text-white leading-tight">$12,450.80</p>
+            </div>
+          </div>
+
+          <!-- Switch Account Dropdown Button -->
+          <div class="md:col-span-4 flex flex-col gap-2 relative">
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Account Operations</label>
+            
+            <button id="accounts-menu-button" 
+                    class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 px-4 text-left text-sm font-semibold text-slate-200 hover:border-slate-700 focus:outline-none transition duration-200 flex items-center justify-between">
+              <span>Switch Account</span>
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+
+            <!-- Dropdown Options -->
+            <div id="accounts-dropdown" class="hidden absolute top-[70px] left-0 right-0 z-20 bg-slate-900/95 border border-slate-800 rounded-2xl shadow-xl backdrop-blur-md overflow-hidden flex flex-col">
+              
+              <button id="switch-primary" class="w-full px-4 py-3 text-left hover:bg-slate-800/80 transition duration-150 flex items-center justify-between group">
+                <div class="flex flex-col">
+                  <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Primary Account</span>
+                  <span class="text-xs text-slate-400 font-mono">•••• 4920</span>
+                </div>
+                <svg id="check-primary" class="w-4 h-4 text-blue-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
+
+              <button id="switch-tax" class="w-full px-4 py-3 text-left hover:bg-slate-800/80 border-t border-slate-800/60 transition duration-150 flex items-center justify-between group">
+                <div class="flex flex-col">
+                  <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Tax Reserve</span>
+                  <span class="text-xs text-slate-400 font-mono">•••• 8831</span>
+                </div>
+                <svg id="check-tax" class="w-4 h-4 text-blue-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
+
+              <button id="switch-payroll" class="w-full px-4 py-3 text-left hover:bg-slate-800/80 border-t border-slate-800/60 transition duration-150 flex items-center justify-between group">
+                <div class="flex flex-col">
+                  <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Payroll Funding</span>
+                  <span class="text-xs text-slate-400 font-mono">•••• 1045</span>
+                </div>
+                <svg id="check-payroll" class="w-4 h-4 text-blue-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recent Transactions</h3>
+            <button id="run-forecast-btn" class="text-xs bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 px-3 py-1.5 rounded-lg border border-blue-500/30 transition flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              Run Core Engine Forecast
+            </button>
+          </div>
+          <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl overflow-hidden shadow-inner flex flex-col" id="transaction-list">
+            <!-- Populated via Javascript -->
+          </div>
+        </div>
+
+        <!-- Core Engine Forecast -->
+        <div class="flex flex-col gap-3" id="forecast-section" style="display: none;">
+          <h3 class="text-xs font-semibold text-blue-400 uppercase tracking-wider flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            Core Engine - 7-Day Forecast
+          </h3>
+          
+          <div class="bg-slate-900/80 border border-blue-900/50 rounded-2xl overflow-hidden shadow-inner flex flex-col p-1 md:p-6 text-sm" id="forecast-content">
+            <!-- Populated via JS -->
+            <div class="text-center text-slate-400 py-8">Fetching forecast data...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Loan Request Letter Modal -->
+  <div id="loan-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+      <div class="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+        <h3 class="font-bold text-white flex items-center gap-2">
+          <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          Generated Loan Request Letter
+        </h3>
+        <button id="close-loan-modal" class="text-slate-400 hover:text-white transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto bg-slate-50 text-slate-900 font-serif whitespace-pre-wrap text-sm leading-relaxed" id="loan-letter-content">
+      </div>
+      <div class="p-4 border-t border-slate-800 bg-slate-950/50 flex justify-end gap-3">
+        <button id="copy-loan-btn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-medium transition">Copy Letter</button>
+        <button id="send-loan-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition shadow-lg shadow-blue-500/20">Send to [Bank Name]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chatbot UI -->
+  <div id="chatbot-container" class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <!-- Chat Window -->
+    <div id="chat-window" class="hidden w-80 md:w-96 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col mb-4 max-h-[500px] h-[500px] animate-fade-in-up">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex items-center justify-between">
+        <h3 class="font-bold text-white flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+          AI Assistant
+        </h3>
+        <button id="close-chat-btn" class="text-white/80 hover:text-white transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <!-- Messages -->
+      <div id="chat-messages" class="flex-grow p-4 overflow-y-auto flex flex-col gap-3 bg-slate-950/50">
+        <!-- Initial Message -->
+        <div class="flex flex-col items-start gap-1 max-w-[85%]">
+          <div class="bg-slate-800 text-slate-200 p-3 rounded-2xl rounded-tl-sm text-sm">
+            Hello! I'm your QuantumCash Virtual Assistant. How can I help you today?
+          </div>
+        </div>
+      </div>
+      <!-- Input -->
+      <div class="p-3 bg-slate-900 border-t border-slate-800">
+        <form id="chat-form" class="flex gap-2">
+          <input type="text" id="chat-input" placeholder="Type a message..." class="flex-grow bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition" required>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-3 py-2 transition flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Chat Toggle Button -->
+    <button id="chat-toggle-btn" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-full p-4 shadow-lg shadow-blue-600/30 transition transform hover:scale-105 flex items-center justify-center">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+    </button>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="py-6 text-center border-t border-slate-900/80 text-xs text-slate-500">
+    <p>Secure Vault Services protected by standard encryption protocols. No real-world keys are stored.</p>
+    <p class="mt-1">&copy; 2026 Gandikota Lalitha Subramanyam. All rights reserved.</p>
+  </footer>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
