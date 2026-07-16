@@ -221,6 +221,7 @@ async function renderBuckets() {
     const resp = await fetch(`/api/buckets?scenario=${appState.currentScenario}`);
     if (!resp.ok) throw new Error("Failed to load buckets");
     const data = await resp.json();
+    appState.buckets = data.buckets;
     
     bucketsContainer.innerHTML = '';
     txnCategorySelect.innerHTML = '';
@@ -286,7 +287,7 @@ async function renderBuckets() {
                 ${b.saved > 0 ? `<span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[9px] font-bold uppercase">+$${b.saved.toLocaleString("en-US", {minimumFractionDigits: 0})} Added</span>` : ''}
               </div>
               <span class="text-xs text-slate-400">
-                <span class="${b.isAlert ? 'text-rose-400 font-bold' : 'text-slate-200 font-medium'}">$${b.spent.toLocaleString("en-US", {minimumFractionDigits: 2})}</span> 
+                <span class="${b.isAlert ? 'text-rose-400 font-bold' : 'text-slate-200 font-medium'}">$${b.remaining.toLocaleString("en-US", {minimumFractionDigits: 2})} left</span> 
                 / $${b.totalFunds.toLocaleString("en-US", {minimumFractionDigits: 2})} total
               </span>
             </div>
@@ -295,7 +296,7 @@ async function renderBuckets() {
               <div class="${barColor} h-2.5 rounded-full transition-all duration-500" style="width: ${Math.max(0, 100 - b.percentage)}%"></div>
             </div>
             <div class="text-[10px] text-slate-500 text-right">
-              $${b.remaining.toLocaleString("en-US", {minimumFractionDigits: 2})} remaining this month
+              $${b.spent.toLocaleString("en-US", {minimumFractionDigits: 2})} spent
             </div>
           </div>
         `;
@@ -852,10 +853,10 @@ function initializePortal() {
             <h4 class="text-rose-400 font-bold mb-1 uppercase tracking-wider text-xs">Critical Warning: Cash Crunch Detected</h4>
             <p class="text-xs md:text-sm text-slate-200">Predicted Balance will DIP BELOW ZERO on: <span class="font-bold">${data.warning.date}</span></p>
             <p class="text-xs md:text-sm text-slate-200">Estimated Shortfall: <span class="font-bold text-rose-400">$${data.warning.shortfall.toFixed(2)}</span></p>
-            <p class="text-[11px] text-slate-400 italic mt-2">The AI engine has drafted an automated executive talent pitch highlighting this analytical capability.</p>
+            <p class="text-[11px] text-slate-400 italic mt-2">The AI virtual treasurer has drafted an automated micro-loan justification to bridge this timing mismatch.</p>
             <button id="generate-loan-btn" class="mt-4 text-xs bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg font-medium transition shadow-lg shadow-rose-600/20 flex items-center gap-1.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              Review Executive Pitch Email
+              Review Dynamic Loan Request Letter
             </button>
           </div>
         `;
@@ -864,10 +865,10 @@ function initializePortal() {
           <div class="bg-emerald-950/30 border-l-4 border-emerald-500 p-4 rounded-r-lg mt-4">
             <h4 class="text-emerald-400 font-bold mb-1 uppercase tracking-wider text-xs">Treasury Standing: Optimal</h4>
             <p class="text-xs md:text-sm text-slate-200">Our predictive cash engine projects positive working capital liquidity across all schedules.</p>
-            <p class="text-xs text-slate-400 italic mt-2">The AI engine has drafted an automated executive talent pitch highlighting this analytical capability.</p>
+            <p class="text-xs text-slate-400 italic mt-2">The AI virtual treasurer has drafted an automated treasury health report and pre-emptive credit request.</p>
             <button id="generate-loan-btn" class="mt-4 text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium transition shadow-lg shadow-emerald-600/20 flex items-center gap-1.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              Review Executive Pitch Email
+              Review Treasury Report & LoC Request
             </button>
           </div>
         `;
@@ -1039,6 +1040,18 @@ function initializePortal() {
     const category = document.getElementById("new-txn-category").value;
     const amount = document.getElementById("new-txn-amount").value;
     const desc = document.getElementById("new-txn-desc").value;
+    
+    // Client-side validation for savings buckets
+    const parsedAmount = parseFloat(amount);
+    if (type === "OUTFLOW" && appState.buckets) {
+      const b = appState.buckets.find(bucket => bucket.name.toLowerCase() === category.toLowerCase());
+      if (b && b.type === "saving") {
+        if (parsedAmount > b.currentAmount) {
+          showToast(`Insufficient funds in saving bucket. Available: $${b.currentAmount.toLocaleString("en-US", {minimumFractionDigits: 2})}. You cannot remove money from a Savings bucket if you haven't added enough funds first!`, "error");
+          return;
+        }
+      }
+    }
     
     try {
       const resp = await fetch("/api/transactions", {
