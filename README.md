@@ -38,7 +38,7 @@ Instead of just panicking when a shortfall is predicted, the engine automaticall
 2. **Set up Environment Variables:**
    Create a `.env` file in the root directory and add your Gemini API key:
    ```env
-   GEMINI_API_KEY=your_api_key_here
+   GEMINI_API_KEY
    ```
 
 3. **Start the Development Server:**
