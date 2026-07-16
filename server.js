@@ -1,3 +1,5 @@
+import { GoogleGenAI } from "@google/genai";
+import fs from "fs";
 import express from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -12,8 +14,6 @@ app.use(express.json());
 app.use(express.static(path.join(process.cwd(), 'web-interface')));
 const router = express.Router();
 
-import fs from 'fs';
-import { GoogleGenAI } from '@google/genai';
 
 // In-memory data store for the session
 const inMemoryLedger = {
@@ -580,5 +580,9 @@ app.use((req, res, next) => {
     url: req.url,
     query: req.query
   });
+});
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({ error: "Internal Server Error", message: err.message });
 });
 export default app;
