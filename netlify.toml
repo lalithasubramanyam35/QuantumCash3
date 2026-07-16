@@ -6,6 +6,7 @@
 
 [functions]
   included_files = ["ledger_crunch.csv", "ledger_stable.csv"]
+  node_bundler = "esbuild"
 
 [[redirects]]
   from = "/api/*"
