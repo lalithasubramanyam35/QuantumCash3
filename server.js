@@ -559,9 +559,13 @@ router.get('/debug', (req, res) => {
   });
 });
 
-if (!process.env.LAMBDA_TASK_ROOT && !process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+
+app.use("/", router);
+
 app.use("/api", router);
 app.use("/.netlify/functions/api", router);
+
+if (!process.env.LAMBDA_TASK_ROOT && !process.env.AWS_LAMBDA_FUNCTION_VERSION) {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
