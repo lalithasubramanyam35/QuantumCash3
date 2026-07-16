@@ -17,8 +17,23 @@ app.use(express.static(path.join(__dirname, 'web-interface')));
 import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
 
+// In-memory data store for the session
+const inMemoryLedger = {
+  crunch: null,
+  stable: null
+};
+
+const customBuckets = {
+  crunch: [],
+  stable: []
+};
+
 // CSV Parser helper using readFileSync (fast, robust, 100% synchronous)
-function parseLedgerCSV(filePath) {
+function parseLedgerCSV(filePath, scenario) {
+  if (inMemoryLedger[scenario]) {
+    return inMemoryLedger[scenario];
+  }
+
   const content = fs.readFileSync(filePath, 'utf-8');
   const lines = content.split(/\r?\n/).filter(line => line.trim() !== '');
   const headers = lines[0].split(',').map(h => h.trim());
@@ -47,7 +62,8 @@ function parseLedgerCSV(filePath) {
     transactions.push(txn);
   }
   
-  return { transactions, finalBalance: parseFloat(runningBalance.toFixed(2)) };
+  inMemoryLedger[scenario] = { transactions, finalBalance: parseFloat(runningBalance.toFixed(2)) };
+  return inMemoryLedger[scenario];
 }
 
 // Technical Proof of Competence: Transactions API
@@ -56,7 +72,7 @@ app.get('/api/transactions', (req, res) => {
   const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
   
   try {
-    const { transactions, finalBalance } = parseLedgerCSV(filePath);
+    const { transactions, finalBalance } = parseLedgerCSV(filePath, scenario);
     
     let filtered = [...transactions];
     
@@ -90,6 +106,184 @@ app.get('/api/transactions', (req, res) => {
   }
 });
 
+// Smart-Wallet Buckets API
+app.get('/api/buckets', (req, res) => {
+  const scenario = req.query.scenario === 'crunch' ? 'crunch' : 'stable';
+  const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
+  
+  try {
+    const { transactions } = parseLedgerCSV(filePath, scenario);
+    
+    // Use custom buckets for this scenario
+    const buckets = customBuckets[scenario].map(b => ({ ...b, spent: 0, saved: 0 }));
+
+    // Calculate spent for buckets based on transactions
+    transactions.forEach(t => {
+      const bucket = buckets.find(b => b.name.toLowerCase() === t.category.toLowerCase());
+      if (bucket) {
+        if (t.type === 'OUTFLOW') {
+          bucket.spent += Math.abs(t.amount);
+        } else if (t.type === 'INFLOW') {
+          bucket.saved += Math.abs(t.amount);
+        }
+      }
+    });
+
+    const enrichedBuckets = buckets.map(b => {
+      if (b.type === 'saving') {
+        const currentAmount = b.saved - b.spent;
+        const percentage = b.allocated > 0 ? (currentAmount / b.allocated) * 100 : 0;
+        return {
+          ...b,
+          currentAmount: Math.max(0, currentAmount),
+          remaining: Math.max(0, b.allocated - currentAmount),
+          percentage: Math.max(0, Math.min(100, parseFloat(percentage.toFixed(2)))),
+          isAlert: false
+        };
+      } else {
+        const totalFunds = b.allocated + b.saved;
+        const percentage = totalFunds > 0 ? (b.spent / totalFunds) * 100 : 0;
+        const isAlert = percentage >= 90;
+        return {
+          ...b,
+          totalFunds,
+          remaining: totalFunds - b.spent,
+          percentage: parseFloat(percentage.toFixed(2)),
+          isAlert
+        };
+      }
+    });
+
+    res.json({ buckets: enrichedBuckets });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch buckets: " + error.message });
+  }
+});
+
+// Create Bucket API
+app.post('/api/buckets', (req, res) => {
+  const scenario = req.body.scenario === 'crunch' ? 'crunch' : 'stable';
+  
+  try {
+    const { name, allocated, goal, type } = req.body;
+    
+    if (!name || isNaN(parseFloat(allocated))) {
+      return res.status(400).json({ error: "Invalid bucket data" });
+    }
+
+    const newBucket = {
+      id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+      name: name,
+      type: type || 'spending',
+      allocated: parseFloat(allocated),
+      goal: goal || ''
+    };
+
+    customBuckets[scenario].push(newBucket);
+
+    res.json({ success: true, bucket: newBucket });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create bucket: " + error.message });
+  }
+});
+
+// Add Transaction API
+app.post('/api/transactions', (req, res) => {
+  const scenario = req.body.scenario === 'crunch' ? 'crunch' : 'stable';
+  const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
+  
+  try {
+    const ledger = parseLedgerCSV(filePath, scenario);
+    const { amount, category, description, type } = req.body;
+    
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({ error: "Invalid amount" });
+    }
+
+    const txnType = type === 'INFLOW' ? 'INFLOW' : 'OUTFLOW';
+    
+    // Check savings bucket balance for OUTFLOW
+    const targetBucket = customBuckets[scenario].find(b => b.name.toLowerCase() === category.toLowerCase());
+    if (targetBucket && targetBucket.type === 'saving' && txnType === 'OUTFLOW') {
+      let saved = 0;
+      let spent = 0;
+      ledger.transactions.forEach(t => {
+        if (t.category.toLowerCase() === category.toLowerCase()) {
+          if (t.type === 'INFLOW') saved += Math.abs(t.amount);
+          else if (t.type === 'OUTFLOW') spent += Math.abs(t.amount);
+        }
+      });
+      const currentAmount = saved - spent;
+      if (parsedAmount > currentAmount) {
+        return res.status(400).json({ error: `Insufficient funds in saving bucket. Available: $${currentAmount.toFixed(2)}` });
+      }
+    }
+
+    const newTxn = {
+      date: new Date().toISOString().split('T')[0],
+      transaction_id: `TXN_NEW_${Date.now()}`,
+      type: txnType,
+      amount: txnType === 'INFLOW' ? Math.abs(parsedAmount) : -Math.abs(parsedAmount),
+      category: category,
+      description: description || 'User added transaction'
+    };
+
+    ledger.finalBalance += newTxn.amount;
+    newTxn.runningBalance = parseFloat(ledger.finalBalance.toFixed(2));
+    ledger.transactions.push(newTxn);
+
+    res.json({ success: true, transaction: newTxn });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to add transaction: " + error.message });
+  }
+});
+
+// Move Transaction API
+app.post('/api/transactions/move', (req, res) => {
+  const scenario = req.body.scenario === 'crunch' ? 'crunch' : 'stable';
+  const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
+  
+  try {
+    const ledger = parseLedgerCSV(filePath, scenario);
+    const { transaction_id, newCategory } = req.body;
+    
+    if (!transaction_id || !newCategory) {
+      return res.status(400).json({ error: "Missing transaction_id or newCategory" });
+    }
+
+    const txn = ledger.transactions.find(t => t.transaction_id === transaction_id);
+    if (!txn) {
+      return res.status(404).json({ error: "Transaction not found" });
+    }
+
+    // Check savings bucket balance for OUTFLOW moves to a saving bucket
+    if (txn.type === 'OUTFLOW' && txn.category.toLowerCase() !== newCategory.toLowerCase()) {
+      const targetBucket = customBuckets[scenario].find(b => b.name.toLowerCase() === newCategory.toLowerCase());
+      if (targetBucket && targetBucket.type === 'saving') {
+        let saved = 0;
+        let spent = 0;
+        ledger.transactions.forEach(t => {
+          if (t.category.toLowerCase() === newCategory.toLowerCase() && t.transaction_id !== transaction_id) {
+            if (t.type === 'INFLOW') saved += Math.abs(t.amount);
+            else if (t.type === 'OUTFLOW') spent += Math.abs(t.amount);
+          }
+        });
+        const currentAmount = saved - spent;
+        if (Math.abs(txn.amount) > currentAmount) {
+          return res.status(400).json({ error: `Insufficient funds in saving bucket to move this expense. Available: $${currentAmount.toFixed(2)}` });
+        }
+      }
+    }
+
+    txn.category = newCategory;
+
+    res.json({ success: true, transaction: txn });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to move transaction: " + error.message });
+  }
+});
+
 // Dynamic Forecast API utilizing parsed LEDGER CSV and Gemini AI (with robust fallback)
 app.get('/api/forecast', async (req, res) => {
   const scenario = req.query.scenario === 'crunch' ? 'crunch' : 'stable';
@@ -97,7 +291,7 @@ app.get('/api/forecast', async (req, res) => {
   
   let ledger;
   try {
-    ledger = parseLedgerCSV(filePath);
+    ledger = parseLedgerCSV(filePath, scenario);
   } catch (error) {
     return res.status(500).json({ error: "Failed to read ledger: " + error.message });
   }

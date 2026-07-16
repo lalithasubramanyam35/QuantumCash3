@@ -397,6 +397,27 @@
 
         </div>
 
+        <!-- SMART-WALLET BUCKET SYSTEM -->
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Smart-Wallet Buckets</h3>
+            <div class="flex gap-2">
+              <button id="create-bucket-btn" class="text-xs bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 hover:text-blue-300 px-3 py-1.5 rounded-lg border border-blue-500/30 transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Create Bucket
+              </button>
+              <button id="add-txn-btn" class="text-xs bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 hover:text-emerald-300 px-3 py-1.5 rounded-lg border border-emerald-500/30 transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Add Expense
+              </button>
+            </div>
+          </div>
+          <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-5 shadow-inner flex flex-col gap-5" id="buckets-container">
+            <!-- Populated via Javascript -->
+            <div class="text-center text-slate-400 py-4 text-sm">Loading buckets...</div>
+          </div>
+        </div>
+
         <!-- Recent Transactions -->
         <div class="flex flex-col gap-3">
           <div class="flex items-center justify-between">
@@ -410,9 +431,15 @@
             <div id="transaction-list" class="divide-y divide-slate-800/60">
               <!-- Populated via Javascript -->
             </div>
-            <div id="transaction-list-footer" class="p-3 border-t border-slate-800/60 flex justify-center bg-slate-950/20">
+            <div id="transaction-list-footer" class="p-3 border-t border-slate-800/60 flex justify-center gap-3 bg-slate-950/20 flex-wrap">
+              <button id="show-more-txns-btn" class="text-xs font-semibold text-blue-400 hover:text-blue-300 transition duration-150 py-1 px-4 rounded hover:bg-slate-800/30">
+                Show More Transactions
+              </button>
               <button id="view-all-txns-btn" class="text-xs font-semibold text-blue-400 hover:text-blue-300 transition duration-150 py-1 px-4 rounded hover:bg-slate-800/30">
                 View All Transactions
+              </button>
+              <button id="view-less-txns-btn" class="text-xs font-semibold text-blue-400 hover:text-blue-300 transition duration-150 py-1 px-4 rounded hover:bg-slate-800/30 hidden">
+                View Less
               </button>
             </div>
           </div>
@@ -617,6 +644,132 @@
           Print / Download PDF
         </button>
         <button id="close-prospectus-ok" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition shadow-lg shadow-emerald-600/20">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Bucket Modal -->
+  <div id="create-bucket-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden animate-fade-in">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col m-4">
+      <div class="p-4 border-b border-slate-800 bg-slate-950/50 flex justify-between items-center">
+        <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+          Create Bucket
+        </h3>
+        <button id="close-create-bucket-btn" class="text-slate-500 hover:text-slate-300 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="p-6 text-sm text-slate-300">
+        <form id="create-bucket-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Bucket Type</label>
+            <select id="new-bucket-type" required class="w-full bg-slate-950 border border-slate-700 rounded py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+              <option value="spending">Spending (Monthly Budget)</option>
+              <option value="saving">Saving (Savings Goal)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Bucket Name</label>
+            <input type="text" id="new-bucket-name" required placeholder="e.g. Travel, Tech, Coffee" class="w-full bg-slate-950 border border-slate-700 rounded py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+          </div>
+          <div>
+            <label id="new-bucket-allocated-label" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Allocated Budget ($)</label>
+            <input type="number" step="0.01" min="0.01" id="new-bucket-allocated" required placeholder="0.00" class="w-full bg-slate-950 border border-slate-700 rounded py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+          </div>
+          <div>
+            <label id="new-bucket-goal-label" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Goal / Reminder</label>
+            <input type="text" id="new-bucket-goal" placeholder="e.g. Save for a new laptop" class="w-full bg-slate-950 border border-slate-700 rounded py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+          </div>
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white rounded py-2 mt-2 transition font-semibold">Save Bucket</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Transaction Modal -->
+  <div id="add-txn-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden animate-fade-in">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col m-4">
+      <div class="p-4 border-b border-slate-800 bg-slate-950/50 flex justify-between items-center">
+        <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+          Add Transaction
+        </h3>
+        <button id="close-add-txn-btn" class="text-slate-500 hover:text-slate-300 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="p-6 text-sm text-slate-300">
+        <form id="add-txn-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Transaction Type</label>
+            <select id="new-txn-type" required class="w-full bg-slate-950 border border-slate-700 rounded py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+              <option value="OUTFLOW">Expense (Money Out)</option>
+              <option value="INFLOW">Deposit / Save (Money In)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Category Bucket</label>
+            <select id="new-txn-category" required class="w-full bg-slate-950 border border-slate-700 rounded py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Amount ($)</label>
+            <input type="number" step="0.01" min="0.01" id="new-txn-amount" required placeholder="0.00" class="w-full bg-slate-950 border border-slate-700 rounded py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Description (Optional)</label>
+            <input type="text" id="new-txn-desc" placeholder="Transaction description" class="w-full bg-slate-950 border border-slate-700 rounded py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+          </div>
+          <div id="saving-bucket-disclaimer" class="hidden text-[10px] text-amber-400/90 leading-tight">
+            Note: You cannot remove money from a Savings bucket if you haven't added enough funds to it yet.
+          </div>
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded py-2 mt-2 transition font-semibold">Save Transaction</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bucket Details & Transactions Modal -->
+  <div id="bucket-details-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden animate-fade-in">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col m-4 max-h-[80vh]">
+      <div class="p-4 border-b border-slate-800 bg-slate-950/50 flex justify-between items-center">
+        <h3 id="bucket-details-title" class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+          Bucket Transactions
+        </h3>
+        <button id="close-bucket-details-btn" class="text-slate-500 hover:text-slate-300 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="p-4 bg-slate-900 overflow-y-auto">
+        <div id="bucket-details-list" class="space-y-3">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Move Transaction Modal (Nested or separate) -->
+  <div id="move-txn-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden animate-fade-in">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col m-4">
+      <div class="p-4 border-b border-slate-800 bg-slate-950/50 flex justify-between items-center">
+        <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Move Transaction</h3>
+        <button id="close-move-txn-btn" class="text-slate-500 hover:text-slate-300 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="p-5 text-sm text-slate-300">
+        <form id="move-txn-form" class="space-y-4">
+          <input type="hidden" id="move-txn-id" />
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">New Category Bucket</label>
+            <select id="move-txn-category" required class="w-full bg-slate-950 border border-slate-700 rounded py-2 px-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white rounded py-2 mt-2 transition font-semibold">Move</button>
+        </form>
       </div>
     </div>
   </div>

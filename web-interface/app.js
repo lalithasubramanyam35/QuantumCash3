@@ -106,7 +106,7 @@ function showToast(message, type = "success") {
   if (type === "success") {
     toast.className += " bg-slate-950/95 border-emerald-500/30 text-emerald-400";
     toast.innerHTML = `
-      <svg class="w-4.5 h-4.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
       </svg>
       <span>${message}</span>
@@ -114,7 +114,7 @@ function showToast(message, type = "success") {
   } else {
     toast.className += " bg-slate-950/95 border-rose-500/30 text-rose-400";
     toast.innerHTML = `
-      <svg class="w-4.5 h-4.5 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-5 h-5 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
       </svg>
       <span>${message}</span>
@@ -207,6 +207,107 @@ function updateExecutiveMetrics(forecastData, scenario) {
 }
 
 // Render Dashboard Data with Real-Time API Feeds
+// Render Smart-Wallet Buckets
+async function renderBuckets() {
+  const bucketsContainer = document.getElementById("buckets-container");
+  const txnCategorySelect = document.getElementById("new-txn-category");
+  
+  if (appState.activeAccountKey !== "primary") {
+    bucketsContainer.innerHTML = `<div class="text-center text-slate-400 py-4 text-sm">Buckets not available for this account.</div>`;
+    return;
+  }
+
+  try {
+    const resp = await fetch(`/api/buckets?scenario=${appState.currentScenario}`);
+    if (!resp.ok) throw new Error("Failed to load buckets");
+    const data = await resp.json();
+    
+    bucketsContainer.innerHTML = '';
+    txnCategorySelect.innerHTML = '';
+    
+    if (data.buckets.length === 0) {
+      bucketsContainer.innerHTML = `<div class="text-center text-slate-400 py-4 text-sm">No buckets created yet. Create one to start budgeting!</div>`;
+      txnCategorySelect.innerHTML = `<option disabled selected>No buckets available</option>`;
+      return;
+    }
+    
+    data.buckets.forEach(b => {
+      // Add to select options
+      const opt = document.createElement('option');
+      opt.value = b.name;
+      opt.textContent = `${b.name} (${b.type === 'saving' ? 'Saving' : 'Spending'})`;
+      opt.dataset.type = b.type;
+      txnCategorySelect.appendChild(opt);
+
+      let bucketHtml = '';
+      if (b.type === 'saving') {
+        let barColor = "bg-blue-500";
+        if (b.percentage >= 100) barColor = "bg-emerald-500";
+        
+        bucketHtml = `
+          <div class="flex flex-col gap-1.5 cursor-pointer hover:bg-slate-800/50 p-2 rounded-lg -mx-2 transition" onclick="openBucketDetails('${b.name}')">
+            <div class="flex justify-between items-end">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-slate-200">${b.name} <span class="text-[10px] text-blue-400 font-normal border border-blue-500/30 bg-blue-500/10 px-1 rounded ml-1">Saving</span></span>
+                ${b.percentage >= 100 ? '<span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-bold uppercase">Goal Reached!</span>' : ''}
+              </div>
+              <span class="text-xs text-slate-400">
+                <span class="text-slate-200 font-medium">$${b.currentAmount.toLocaleString("en-US", {minimumFractionDigits: 2})}</span> 
+                / $${b.allocated.toLocaleString("en-US", {minimumFractionDigits: 2})} goal
+              </span>
+            </div>
+            ${b.goal ? `<div class="text-[10px] text-blue-400 font-medium flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> For: ${b.goal}</div>` : ''}
+            <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50 mt-1">
+              <div class="${barColor} h-2.5 rounded-full transition-all duration-500" style="width: ${b.percentage}%"></div>
+            </div>
+            <div class="text-[10px] text-slate-500 text-right">
+              $${b.remaining.toLocaleString("en-US", {minimumFractionDigits: 2})} left to save
+            </div>
+          </div>
+        `;
+      } else {
+        let barColor = "bg-emerald-500";
+        let bgColor = "bg-emerald-500/20";
+        
+        if (b.isAlert) {
+          barColor = "bg-rose-500";
+          bgColor = "bg-rose-500/20";
+        } else if (b.percentage > 75) {
+          barColor = "bg-amber-500";
+          bgColor = "bg-amber-500/20";
+        }
+        
+        bucketHtml = `
+          <div class="flex flex-col gap-1.5 cursor-pointer hover:bg-slate-800/50 p-2 rounded-lg -mx-2 transition" onclick="openBucketDetails('${b.name}')">
+            <div class="flex justify-between items-end">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-slate-200">${b.name} <span class="text-[10px] text-emerald-400 font-normal border border-emerald-500/30 bg-emerald-500/10 px-1 rounded ml-1">Spending</span></span>
+                ${b.isAlert ? '<span class="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[9px] font-bold uppercase">Budget Alert</span>' : ''}
+                ${b.saved > 0 ? `<span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[9px] font-bold uppercase">+$${b.saved.toLocaleString("en-US", {minimumFractionDigits: 0})} Added</span>` : ''}
+              </div>
+              <span class="text-xs text-slate-400">
+                <span class="${b.isAlert ? 'text-rose-400 font-bold' : 'text-slate-200 font-medium'}">$${b.spent.toLocaleString("en-US", {minimumFractionDigits: 2})}</span> 
+                / $${b.totalFunds.toLocaleString("en-US", {minimumFractionDigits: 2})} total
+              </span>
+            </div>
+            ${b.goal ? `<div class="text-[10px] text-blue-400 font-medium flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Note: ${b.goal}</div>` : ''}
+            <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50 mt-1">
+              <div class="${barColor} h-2.5 rounded-full transition-all duration-500" style="width: ${Math.max(0, 100 - b.percentage)}%"></div>
+            </div>
+            <div class="text-[10px] text-slate-500 text-right">
+              $${b.remaining.toLocaleString("en-US", {minimumFractionDigits: 2})} remaining this month
+            </div>
+          </div>
+        `;
+      }
+      bucketsContainer.innerHTML += bucketHtml;
+    });
+
+  } catch (err) {
+    bucketsContainer.innerHTML = `<div class="text-center text-rose-400 py-4 text-sm">Failed to fetch buckets: ${err.message}</div>`;
+  }
+}
+
 async function renderDashboard() {
   const account = ACCOUNTS_DATA[appState.activeAccountKey];
   if (!account) return;
@@ -289,15 +390,42 @@ async function renderDashboard() {
     txnList.appendChild(txnRow);
   });
 
-  // Toggle View More Footer
+  // Toggle View More Footer and individual buttons
   const footerContainer = document.getElementById("transaction-list-footer");
+  const showMoreBtn = document.getElementById("show-more-txns-btn");
   const viewMoreBtn = document.getElementById("view-all-txns-btn");
-  if (appState.activeAccountKey === "primary" && totalCount > appState.txnLimit) {
-    footerContainer.classList.remove("hidden");
-    viewMoreBtn.textContent = `View All Transactions (${totalCount - appState.txnLimit} remaining)`;
+  const viewLessBtn = document.getElementById("view-less-txns-btn");
+
+  if (appState.activeAccountKey === "primary") {
+    const hasMore = totalCount > appState.txnLimit;
+    const isExpanded = appState.txnLimit > 5;
+
+    if (hasMore || isExpanded) {
+      footerContainer.classList.remove("hidden");
+      
+      if (hasMore) {
+        showMoreBtn.classList.remove("hidden");
+        viewMoreBtn.classList.remove("hidden");
+        viewMoreBtn.textContent = `View All Transactions (${totalCount - appState.txnLimit} remaining)`;
+      } else {
+        showMoreBtn.classList.add("hidden");
+        viewMoreBtn.classList.add("hidden");
+      }
+
+      if (isExpanded) {
+        viewLessBtn.classList.remove("hidden");
+      } else {
+        viewLessBtn.classList.add("hidden");
+      }
+    } else {
+      footerContainer.classList.add("hidden");
+    }
   } else {
     footerContainer.classList.add("hidden");
   }
+
+  // Render Smart-Wallet Buckets
+  renderBuckets();
 }
 
 // Initializing Event Listeners
@@ -820,9 +948,142 @@ function initializePortal() {
     triggerForecastUpdate();
   });
 
+  // Create Bucket Modal Handlers
+  const createBucketModal = document.getElementById("create-bucket-modal");
+  const typeSelect = document.getElementById("new-bucket-type");
+  const allocatedLabel = document.getElementById("new-bucket-allocated-label");
+  const goalLabel = document.getElementById("new-bucket-goal-label");
+
+  typeSelect.addEventListener("change", (e) => {
+    if (e.target.value === 'saving') {
+      allocatedLabel.textContent = "Savings Goal ($)";
+      goalLabel.textContent = "What are you saving for?";
+    } else {
+      allocatedLabel.textContent = "Allocated Budget ($)";
+      goalLabel.textContent = "Goal / Reminder";
+    }
+  });
+
+  document.getElementById("create-bucket-btn").addEventListener("click", () => {
+    createBucketModal.classList.remove("hidden");
+  });
+  document.getElementById("close-create-bucket-btn").addEventListener("click", () => {
+    createBucketModal.classList.add("hidden");
+  });
+
+  document.getElementById("create-bucket-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("new-bucket-name").value;
+    const type = document.getElementById("new-bucket-type").value;
+    const allocated = document.getElementById("new-bucket-allocated").value;
+    const goal = document.getElementById("new-bucket-goal").value;
+    
+    try {
+      const resp = await fetch("/api/buckets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scenario: appState.currentScenario,
+          name,
+          type,
+          allocated,
+          goal
+        })
+      });
+      
+      if (!resp.ok) throw new Error("Failed to create bucket");
+      
+      // Reset form and close modal
+      document.getElementById("create-bucket-form").reset();
+      createBucketModal.classList.add("hidden");
+      showToast("Bucket created successfully!");
+      
+      // Refresh dashboard (which refreshes buckets)
+      renderDashboard();
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  });
+
+  // Add Transaction Modal Handlers
+  const addTxnModal = document.getElementById("add-txn-modal");
+  const newTxnType = document.getElementById("new-txn-type");
+  const newTxnCategory = document.getElementById("new-txn-category");
+  const savingDisclaimer = document.getElementById("saving-bucket-disclaimer");
+
+  function checkDisclaimer() {
+    const isOutflow = newTxnType.value === "OUTFLOW";
+    const selectedOption = newTxnCategory.options[newTxnCategory.selectedIndex];
+    const isSaving = selectedOption && selectedOption.dataset.type === "saving";
+    if (isOutflow && isSaving) {
+      savingDisclaimer.classList.remove("hidden");
+    } else {
+      savingDisclaimer.classList.add("hidden");
+    }
+  }
+
+  newTxnType.addEventListener("change", checkDisclaimer);
+  newTxnCategory.addEventListener("change", checkDisclaimer);
+
+  document.getElementById("add-txn-btn").addEventListener("click", () => {
+    addTxnModal.classList.remove("hidden");
+    checkDisclaimer();
+  });
+  document.getElementById("close-add-txn-btn").addEventListener("click", () => {
+    addTxnModal.classList.add("hidden");
+  });
+  
+  document.getElementById("add-txn-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const type = document.getElementById("new-txn-type").value;
+    const category = document.getElementById("new-txn-category").value;
+    const amount = document.getElementById("new-txn-amount").value;
+    const desc = document.getElementById("new-txn-desc").value;
+    
+    try {
+      const resp = await fetch("/api/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scenario: appState.currentScenario,
+          type,
+          category,
+          amount,
+          description: desc
+        })
+      });
+      
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to add transaction");
+      }
+      
+      // Reset form and close modal
+      document.getElementById("add-txn-form").reset();
+      addTxnModal.classList.add("hidden");
+      showToast("Transaction added successfully!");
+      
+      // Refresh dashboard
+      renderDashboard();
+      triggerForecastUpdate();
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  });
+
   // View More/All Transactions Event Handlers
+  document.getElementById("show-more-txns-btn").addEventListener("click", () => {
+    appState.txnLimit += 5;
+    renderDashboard();
+  });
+
   document.getElementById("view-all-txns-btn").addEventListener("click", () => {
     appState.txnLimit = 100;
+    renderDashboard();
+  });
+
+  document.getElementById("view-less-txns-btn").addEventListener("click", () => {
+    appState.txnLimit = 5;
     renderDashboard();
   });
 
@@ -967,6 +1228,114 @@ function initializePortal() {
       removeTypingIndicator();
       console.error('Chat error:', error);
       addMessage('Sorry, there was an error communicating with the server.', false);
+    }
+  });
+
+  // Expose specific modal functions globally
+  window.openBucketDetails = async function(bucketName) {
+    const listContainer = document.getElementById("bucket-details-list");
+    document.getElementById("bucket-details-title").textContent = `${bucketName} Transactions`;
+    listContainer.innerHTML = '<div class="text-center text-slate-400 py-4 text-sm">Loading...</div>';
+    document.getElementById("bucket-details-modal").classList.remove("hidden");
+
+    try {
+      // We already have all transactions for the scenario in appState if primary account
+      // Or we can fetch them again. Let's fetch just to be safe.
+      const resp = await fetch(`/api/transactions?scenario=${appState.currentScenario}&limit=1000`);
+      let txns = [];
+      if (resp.ok) {
+        const data = await resp.json();
+        txns = data.transactions.filter(t => t.category.toLowerCase() === bucketName.toLowerCase());
+      }
+      
+      listContainer.innerHTML = '';
+      if (txns.length === 0) {
+        listContainer.innerHTML = '<div class="text-center text-slate-400 py-4 text-sm">No transactions found for this bucket.</div>';
+        return;
+      }
+
+      txns.forEach(t => {
+        const isOutflow = t.type === "OUTFLOW";
+        const amtStr = isOutflow ? `-$${Math.abs(t.amount).toLocaleString("en-US", {minimumFractionDigits:2})}` : `+$${Math.abs(t.amount).toLocaleString("en-US", {minimumFractionDigits:2})}`;
+        const amtColor = isOutflow ? "text-rose-400" : "text-emerald-400";
+        const iconColor = isOutflow ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+        const iconSvg = isOutflow 
+          ? `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`
+          : `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>`;
+
+        listContainer.innerHTML += `
+          <div class="flex items-center justify-between p-2 bg-slate-950/50 border border-slate-800/80 rounded-lg hover:bg-slate-800/30 transition group">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full border flex items-center justify-center ${iconColor}">
+                ${iconSvg}
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs font-bold text-slate-200">${t.description || 'Transaction'}</span>
+                <span class="text-[9px] text-slate-500">${t.date}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold ${amtColor}">${amtStr}</span>
+              <button onclick="openMoveTxnModal('${t.transaction_id}', '${t.category}')" class="opacity-0 group-hover:opacity-100 text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded transition border border-slate-700">Move</button>
+            </div>
+          </div>
+        `;
+      });
+    } catch (err) {
+      listContainer.innerHTML = `<div class="text-center text-rose-400 py-4 text-sm">Failed to load transactions: ${err.message}</div>`;
+    }
+  };
+
+  window.openMoveTxnModal = async function(txnId, currentCategory) {
+    document.getElementById("move-txn-id").value = txnId;
+    const categorySelect = document.getElementById("move-txn-category");
+    
+    // Copy options from new-txn-category
+    const newTxnCategorySelect = document.getElementById("new-txn-category");
+    categorySelect.innerHTML = newTxnCategorySelect.innerHTML;
+    
+    // Select current, if exists
+    categorySelect.value = currentCategory;
+    
+    document.getElementById("move-txn-modal").classList.remove("hidden");
+  };
+
+  document.getElementById("close-bucket-details-btn").addEventListener("click", () => {
+    document.getElementById("bucket-details-modal").classList.add("hidden");
+  });
+
+  document.getElementById("close-move-txn-btn").addEventListener("click", () => {
+    document.getElementById("move-txn-modal").classList.add("hidden");
+  });
+
+  document.getElementById("move-txn-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const transaction_id = document.getElementById("move-txn-id").value;
+    const newCategory = document.getElementById("move-txn-category").value;
+    
+    try {
+      const resp = await fetch("/api/transactions/move", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scenario: appState.currentScenario,
+          transaction_id,
+          newCategory
+        })
+      });
+      
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to move transaction");
+      }
+      
+      document.getElementById("move-txn-modal").classList.add("hidden");
+      document.getElementById("bucket-details-modal").classList.add("hidden");
+      showToast("Transaction moved successfully!");
+      
+      renderDashboard();
+    } catch (err) {
+      showToast(err.message, "error");
     }
   });
 
