@@ -13,6 +13,7 @@ const PORT = 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'web-interface')));
+const router = express.Router();
 
 import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
@@ -29,12 +30,13 @@ const customBuckets = {
 };
 
 // CSV Parser helper using readFileSync (fast, robust, 100% synchronous)
-function parseLedgerCSV(filePath, scenario) {
+function getLedgerFilePath(scenario) { const fileName = `ledger_${scenario}.csv`; const pathsToTry = [ path.join(__dirname, fileName), path.join(process.cwd(), fileName), path.join(process.cwd(), "netlify", "functions", fileName), path.join("/var/task", fileName), path.join("/var/task", "netlify", "functions", fileName), path.join("/var/task", "src", fileName) ]; for (const p of pathsToTry) { if (fs.existsSync(p)) return p; } return path.join(__dirname, fileName); }
+function parseLedgerCSV(scenario) {
   if (inMemoryLedger[scenario]) {
     return inMemoryLedger[scenario];
   }
 
-  const content = fs.readFileSync(filePath, 'utf-8');
+  const fp = getLedgerFilePath(scenario); if (!fs.existsSync(fp)) throw new Error("CSV not found: " + fp); const content = fs.readFileSync(fp, 'utf-8');
   const lines = content.split(/\r?\n/).filter(line => line.trim() !== '');
   const headers = lines[0].split(',').map(h => h.trim());
   
@@ -67,12 +69,12 @@ function parseLedgerCSV(filePath, scenario) {
 }
 
 // Technical Proof of Competence: Transactions API
-app.get('/api/transactions', (req, res) => {
+router.get('/transactions', (req, res) => {
   const scenario = req.query.scenario === 'crunch' ? 'crunch' : 'stable';
   const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
   
   try {
-    const { transactions, finalBalance } = parseLedgerCSV(filePath, scenario);
+    const { transactions, finalBalance } = parseLedgerCSV(scenario);
     
     let filtered = [...transactions];
     
@@ -107,12 +109,12 @@ app.get('/api/transactions', (req, res) => {
 });
 
 // Smart-Wallet Buckets API
-app.get('/api/buckets', (req, res) => {
+router.get('/buckets', (req, res) => {
   const scenario = req.query.scenario === 'crunch' ? 'crunch' : 'stable';
   const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
   
   try {
-    const { transactions } = parseLedgerCSV(filePath, scenario);
+    const { transactions } = parseLedgerCSV(scenario);
     
     // Use custom buckets for this scenario
     const buckets = customBuckets[scenario].map(b => ({ ...b, spent: 0, saved: 0 }));
@@ -161,7 +163,7 @@ app.get('/api/buckets', (req, res) => {
 });
 
 // Create Bucket API
-app.post('/api/buckets', (req, res) => {
+router.post('/buckets', (req, res) => {
   const scenario = req.body.scenario === 'crunch' ? 'crunch' : 'stable';
   
   try {
@@ -188,12 +190,12 @@ app.post('/api/buckets', (req, res) => {
 });
 
 // Add Transaction API
-app.post('/api/transactions', (req, res) => {
+router.post('/transactions', (req, res) => {
   const scenario = req.body.scenario === 'crunch' ? 'crunch' : 'stable';
   const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
   
   try {
-    const ledger = parseLedgerCSV(filePath, scenario);
+    const ledger = parseLedgerCSV(scenario);
     const { amount, category, description, type } = req.body;
     
     const parsedAmount = parseFloat(amount);
@@ -240,12 +242,12 @@ app.post('/api/transactions', (req, res) => {
 });
 
 // Move Transaction API
-app.post('/api/transactions/move', (req, res) => {
+router.post('/transactions/move', (req, res) => {
   const scenario = req.body.scenario === 'crunch' ? 'crunch' : 'stable';
   const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
   
   try {
-    const ledger = parseLedgerCSV(filePath, scenario);
+    const ledger = parseLedgerCSV(scenario);
     const { transaction_id, newCategory } = req.body;
     
     if (!transaction_id || !newCategory) {
@@ -285,13 +287,13 @@ app.post('/api/transactions/move', (req, res) => {
 });
 
 // Dynamic Forecast API utilizing parsed LEDGER CSV and Gemini AI (with robust fallback)
-app.get('/api/forecast', async (req, res) => {
+router.get('/forecast', async (req, res) => {
   const scenario = req.query.scenario === 'crunch' ? 'crunch' : 'stable';
   const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
   
   let ledger;
   try {
-    ledger = parseLedgerCSV(filePath, scenario);
+    ledger = parseLedgerCSV(scenario);
   } catch (error) {
     return res.status(500).json({ error: "Failed to read ledger: " + error.message });
   }
@@ -507,7 +509,7 @@ The letter should be structured with clear headings like "Context & Financial An
   }
 });
 
-app.post('/api/chat', async (req, res) => {
+router.post('/chat', async (req, res) => {
   const apiKey = process.env.GEMINI_API_KEY;
   const isInvalidKey = !apiKey || apiKey.startsWith('YOUR_') || apiKey === 'placeholder' || apiKey === 'undefined';
 
@@ -547,7 +549,20 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+router.get('/debug', (req, res) => {
+  res.json({
+    dirname: __dirname,
+    cwd: process.cwd(),
+    files_in_dirname: fs.readdirSync(__dirname),
+    files_in_cwd: fs.readdirSync(process.cwd()),
+    files_in_functions: fs.existsSync(path.join(process.cwd(), 'netlify', 'functions')) ? fs.readdirSync(path.join(process.cwd(), 'netlify', 'functions')) : []
+  });
+});
+
 if (!process.env.LAMBDA_TASK_ROOT && !process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+app.use("/api", router);
+app.use("/.netlify/functions/api", router);
+
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
   });
