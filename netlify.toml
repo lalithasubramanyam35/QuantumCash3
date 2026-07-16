@@ -4,7 +4,10 @@
   functions = "netlify/functions"
   command = "npm run build"
 
+[functions]
+  included_files = ["ledger_crunch.csv", "ledger_stable.csv"]
+
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  to = "/.netlify/functions/api"
   status = 200
