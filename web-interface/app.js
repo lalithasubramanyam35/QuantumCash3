@@ -852,10 +852,10 @@ function initializePortal() {
             <h4 class="text-rose-400 font-bold mb-1 uppercase tracking-wider text-xs">Critical Warning: Cash Crunch Detected</h4>
             <p class="text-xs md:text-sm text-slate-200">Predicted Balance will DIP BELOW ZERO on: <span class="font-bold">${data.warning.date}</span></p>
             <p class="text-xs md:text-sm text-slate-200">Estimated Shortfall: <span class="font-bold text-rose-400">$${data.warning.shortfall.toFixed(2)}</span></p>
-            <p class="text-[11px] text-slate-400 italic mt-2">The AI virtual treasurer has drafted an automated micro-loan justification to bridge this timing mismatch.</p>
+            <p class="text-[11px] text-slate-400 italic mt-2">The AI engine has drafted an automated executive talent pitch highlighting this analytical capability.</p>
             <button id="generate-loan-btn" class="mt-4 text-xs bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg font-medium transition shadow-lg shadow-rose-600/20 flex items-center gap-1.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              Review Dynamic Loan Request Letter
+              Review Executive Pitch Email
             </button>
           </div>
         `;
@@ -864,10 +864,10 @@ function initializePortal() {
           <div class="bg-emerald-950/30 border-l-4 border-emerald-500 p-4 rounded-r-lg mt-4">
             <h4 class="text-emerald-400 font-bold mb-1 uppercase tracking-wider text-xs">Treasury Standing: Optimal</h4>
             <p class="text-xs md:text-sm text-slate-200">Our predictive cash engine projects positive working capital liquidity across all schedules.</p>
-            <p class="text-xs text-slate-400 italic mt-2">Proactive Line of Credit review prepared for optimization request.</p>
+            <p class="text-xs text-slate-400 italic mt-2">The AI engine has drafted an automated executive talent pitch highlighting this analytical capability.</p>
             <button id="generate-loan-btn" class="mt-4 text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium transition shadow-lg shadow-emerald-600/20 flex items-center gap-1.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              Review Treasury Report & LoC Request
+              Review Executive Pitch Email
             </button>
           </div>
         `;
