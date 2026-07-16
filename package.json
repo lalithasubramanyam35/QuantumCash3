@@ -7,7 +7,7 @@
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node server.js",
-    "build": "node -e \"const fs = require('fs'); fs.mkdirSync('dist', { recursive: true }); fs.cpSync('web-interface', 'dist', { recursive: true }); fs.copyFileSync('ledger_crunch.csv', 'netlify/functions/ledger_crunch.csv'); fs.copyFileSync('ledger_stable.csv', 'netlify/functions/ledger_stable.csv');\""
+    "build": "node -e \"const fs = require('fs'); fs.mkdirSync('dist', { recursive: true }); fs.mkdirSync('netlify/functions', { recursive: true }); fs.cpSync('web-interface', 'dist', { recursive: true }); fs.copyFileSync('ledger_crunch.csv', 'netlify/functions/ledger_crunch.csv'); fs.copyFileSync('ledger_stable.csv', 'netlify/functions/ledger_stable.csv');\""
   },
   "keywords": [],
   "author": "",
@@ -17,7 +17,8 @@
     "csv-parser": "^3.2.1",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "serverless-http": "^4.0.0"
+    "serverless-http": "^4.0.0",
+    "supertest": "^7.2.2"
   },
   "type": "module"
 }

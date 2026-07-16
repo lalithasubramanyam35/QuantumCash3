@@ -1,18 +1,15 @@
 import express from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
 dotenv.config({ override: true });
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3000;
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'web-interface')));
+app.use(express.static(path.join(process.cwd(), 'web-interface')));
 const router = express.Router();
 
 import fs from 'fs';
@@ -30,7 +27,7 @@ const customBuckets = {
 };
 
 // CSV Parser helper using readFileSync (fast, robust, 100% synchronous)
-function getLedgerFilePath(scenario) { const fileName = `ledger_${scenario}.csv`; const pathsToTry = [ path.join(__dirname, fileName), path.join(process.cwd(), fileName), path.join(process.cwd(), "netlify", "functions", fileName), path.join("/var/task", fileName), path.join("/var/task", "netlify", "functions", fileName), path.join("/var/task", "src", fileName) ]; for (const p of pathsToTry) { if (fs.existsSync(p)) return p; } return path.join(__dirname, fileName); }
+function getLedgerFilePath(scenario) { const fileName = `ledger_${scenario}.csv`; const pathsToTry = [ path.join(process.cwd(), fileName), path.join(process.cwd(), fileName), path.join(process.cwd(), "netlify", "functions", fileName), path.join(process.env.LAMBDA_TASK_ROOT || "/var/task", fileName), path.join(process.env.LAMBDA_TASK_ROOT || "/var/task", "netlify", "functions", fileName), path.join(process.cwd(), fileName), path.join("/var/task", "netlify", "functions", fileName), path.join("/var/task", "src", fileName) ]; for (const p of pathsToTry) { if (fs.existsSync(p)) return p; } return path.join(process.cwd(), fileName); }
 function parseLedgerCSV(scenario) {
   if (inMemoryLedger[scenario]) {
     return inMemoryLedger[scenario];
@@ -71,7 +68,7 @@ function parseLedgerCSV(scenario) {
 // Technical Proof of Competence: Transactions API
 router.get('/transactions', (req, res) => {
   const scenario = req.query.scenario === 'crunch' ? 'crunch' : 'stable';
-  const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
+  const filePath = path.join(process.cwd(), `ledger_${scenario}.csv`);
   
   try {
     const { transactions, finalBalance } = parseLedgerCSV(scenario);
@@ -111,7 +108,7 @@ router.get('/transactions', (req, res) => {
 // Smart-Wallet Buckets API
 router.get('/buckets', (req, res) => {
   const scenario = req.query.scenario === 'crunch' ? 'crunch' : 'stable';
-  const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
+  const filePath = path.join(process.cwd(), `ledger_${scenario}.csv`);
   
   try {
     const { transactions } = parseLedgerCSV(scenario);
@@ -192,7 +189,7 @@ router.post('/buckets', (req, res) => {
 // Add Transaction API
 router.post('/transactions', (req, res) => {
   const scenario = req.body.scenario === 'crunch' ? 'crunch' : 'stable';
-  const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
+  const filePath = path.join(process.cwd(), `ledger_${scenario}.csv`);
   
   try {
     const ledger = parseLedgerCSV(scenario);
@@ -244,7 +241,7 @@ router.post('/transactions', (req, res) => {
 // Move Transaction API
 router.post('/transactions/move', (req, res) => {
   const scenario = req.body.scenario === 'crunch' ? 'crunch' : 'stable';
-  const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
+  const filePath = path.join(process.cwd(), `ledger_${scenario}.csv`);
   
   try {
     const ledger = parseLedgerCSV(scenario);
@@ -289,7 +286,7 @@ router.post('/transactions/move', (req, res) => {
 // Dynamic Forecast API utilizing parsed LEDGER CSV and Gemini AI (with robust fallback)
 router.get('/forecast', async (req, res) => {
   const scenario = req.query.scenario === 'crunch' ? 'crunch' : 'stable';
-  const filePath = path.join(__dirname, `ledger_${scenario}.csv`);
+  const filePath = path.join(process.cwd(), `ledger_${scenario}.csv`);
   
   let ledger;
   try {
@@ -551,9 +548,9 @@ router.post('/chat', async (req, res) => {
 
 router.get('/debug', (req, res) => {
   res.json({
-    dirname: __dirname,
+    dirname: process.cwd(),
     cwd: process.cwd(),
-    files_in_dirname: fs.readdirSync(__dirname),
+    files_in_dirname: fs.readdirSync(process.cwd()),
     files_in_cwd: fs.readdirSync(process.cwd()),
     files_in_functions: fs.existsSync(path.join(process.cwd(), 'netlify', 'functions')) ? fs.readdirSync(path.join(process.cwd(), 'netlify', 'functions')) : []
   });
@@ -572,4 +569,16 @@ if (!process.env.LAMBDA_TASK_ROOT && !process.env.AWS_LAMBDA_FUNCTION_VERSION) {
   });
 }
 
+
+// Catch-all to see what path was requested
+app.use((req, res, next) => {
+  res.status(404).json({
+    error: "Route not found",
+    method: req.method,
+    path: req.path,
+    originalUrl: req.originalUrl,
+    url: req.url,
+    query: req.query
+  });
+});
 export default app;
